@@ -12,8 +12,6 @@ void startMenu()
 
 void mainMenu(int mainMenuSelect)
 {
-    
-
         cout << "\n-------------- Opponent --------------\n" << endl;
         if (mainMenuSelect == 1){
             cout << " -->       --- 1 Bot ---\n"<< endl;
@@ -32,10 +30,7 @@ void mainMenu(int mainMenuSelect)
             cout << "           --- 2 Bot ---\n"<< endl;
             cout << " -->       --- 3 Bot ---\n"<< endl;
             cout << "\n         ESC to Back...        " << endl;
-    
     }
-    
-
 }
 
 // void gamePlay(int botAmount)
