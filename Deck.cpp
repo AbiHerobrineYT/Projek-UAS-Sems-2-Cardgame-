@@ -10,7 +10,7 @@ struct card
 
 void createDeck (card kartu[], int &deckSize)
 {
-    string colors[] = {"🔴", "🟡", "🟢", "🔵"};
+    string colors[] = {"RED", "YEL", "GRN", "BLU"};
     int index = 0;
 
     for (int c = 0; c<4; c++)
@@ -36,13 +36,13 @@ void createDeck (card kartu[], int &deckSize)
         {
         for (int p = 0; p<3; p++)
             {
-                kartu[index++] = {"⚫", wildCard[p]};
+                kartu[index++] = {"HTM", wildCard[p]};
             }
         }
         deckSize = index;
 }
 
-main()
-{
-    return 0;
-}
+// main()
+// {
+//     return 0;
+// }
