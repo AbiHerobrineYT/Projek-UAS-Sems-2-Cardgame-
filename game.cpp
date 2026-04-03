@@ -3,8 +3,31 @@
 #include <ctime>
 #include <conio.h>
 #include <windows.h>
-#include "Game.h"
 using namespace std;
+
+#include <string>
+using namespace std;
+
+// ==== STRUCT ====
+struct card {
+    string color;
+    string value;
+};
+
+struct cardNode {
+    card data;
+    cardNode* next;
+};
+
+struct player {
+    string name;
+    cardNode* hand = nullptr;
+    int handSize = 0;
+    bool isBot;
+};
+
+// ==== PROTOTYPE dari file lain ====
+card drawFromDeck(card deck[], int &deckTop);
 
 // ===================== ANSI COLOR =====================
 #define RESET   "\033[0m"
@@ -49,6 +72,7 @@ card removeCard(player* p, int index) {
     }
 
     card removed = temp->data;
+
     if (!prev) p->hand = temp->next;
     else prev->next = temp->next;
 
@@ -63,7 +87,24 @@ card getCard(player* p, int index) {
     return temp->data;
 }
 
-void showHand(player* p, int selected) {
+// ===================== DISPLAY =====================
+void showHand(player players[], int totalplayers, int currentIdx,
+              card topCard, string activeColor,
+              player* p, int selected)
+{
+    cout << "Top Card: " << displayCard(topCard)
+         << " | Warna: " << getColor(activeColor)
+         << activeColor << RESET << "\n\n";
+
+    cout << "Opponent:\n";
+    for (int i = 0; i < totalplayers; i++) {
+        if (i == currentIdx) continue;
+        cout << "- " << players[i].name
+             << " (" << players[i].handSize << " kartu)\n";
+    }
+
+    cout << "\n====================================\n";
+
     cardNode* temp = p->hand;
     int i = 0;
 
@@ -88,15 +129,13 @@ void shuffleDeck(card deck[], int size) {
 
 // ===================== DECK =====================
 card drawFromDeck(card deck[], int &deckTop) {
-    if (deckTop < 0) return {"RED", "0"}; // fallback
+    if (deckTop < 0) return {"RED", "0"};
     return deck[deckTop--];
 }
 
 // ===================== VALIDASI =====================
 bool isValidPlay(card played, card topCard, string activeColor) {
-    if (played.color == activeColor) return true;
-    if (played.value == topCard.value) return true;
-    return false;
+    return (played.color == activeColor || played.value == topCard.value);
 }
 
 // ===================== BOT =====================
@@ -114,12 +153,16 @@ int botChooseCard(player* bot, card topCard, string activeColor) {
 }
 
 // ===================== INPUT =====================
-int arrowSelect(player* p, card topCard, string activeColor) {
+int arrowSelect(player players[], int totalplayers, int currentIdx,
+                player* p, card topCard, string activeColor)
+{
     int selected = 0;
 
     while (true) {
         system("cls");
-        showHand(p, selected);
+        showHand(players, totalplayers, currentIdx,
+                 topCard, activeColor,
+                 p, selected);
 
         int key = _getch();
 
@@ -162,13 +205,13 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 
         if (chosenIdx == -1) {
             addCard(current, drawFromDeck(deck, deckTop));
-            cout << "BOT draw...\n";
-            Sleep(1200);
+            Sleep(1000);
             currentIdx = (currentIdx + 1) % totalplayers;
             return;
         }
     } else {
-        chosenIdx = arrowSelect(current, topCard, activeColor);
+        chosenIdx = arrowSelect(players, totalplayers, currentIdx,
+                                current, topCard, activeColor);
 
         if (chosenIdx == -1) {
             addCard(current, drawFromDeck(deck, deckTop));
@@ -183,7 +226,7 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 
     if (current->handSize == 1) {
         cout << "UNO!\n";
-        Sleep(1000);
+        Sleep(800);
     }
 
     currentIdx = (currentIdx + 1) % totalplayers;
@@ -199,25 +242,19 @@ void startGame(card deck[], int deckSize, int botAmount) {
 
     cout << "Nama kamu: ";
     cin >> players[0].name;
-    players[0].hand = nullptr;
-    players[0].handSize = 0;
     players[0].isBot = false;
 
     for (int i = 1; i <= botAmount; i++) {
         players[i].name = "Bot " + to_string(i);
-        players[i].hand = nullptr;
-        players[i].handSize = 0;
         players[i].isBot = true;
     }
 
     int deckTop = deckSize - 1;
 
-    // bagi kartu
     for (int r = 0; r < 7; r++)
         for (int i = 0; i < totalplayers; i++)
             addCard(&players[i], drawFromDeck(deck, deckTop));
 
-    // kartu awal
     card topCard = drawFromDeck(deck, deckTop);
     string activeColor = topCard.color;
 

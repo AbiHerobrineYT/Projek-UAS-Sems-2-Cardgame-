@@ -1,7 +1,15 @@
 #include <iostream>
 #include <conio.h>
-#include "Game.h"
 using namespace std;
+
+struct card {
+    string color;
+    string value;
+};
+
+// prototype
+void createDeck(card deck[], int &deckSize);
+void startGame(card deck[], int deckSize, int botAmount);
 
 void startMenu()
 {
