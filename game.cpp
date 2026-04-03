@@ -26,8 +26,13 @@ struct player {
     bool isBot;
 };
 
+bool isClockwise = true;
+
 // ==== PROTOTYPE dari file lain ====
 card drawFromDeck(card deck[], int &deckTop);
+void handleActionCards(card played, int &currentIdx, int totalPlayers, 
+                       bool &isClockwise, string &activeColor, 
+                       card deck[], int &deckTop, player players[]);
 
 // ===================== ANSI COLOR =====================
 #define RESET   "\033[0m"
@@ -187,7 +192,7 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
 // ===================== TURN =====================
 void playTurn(player players[], int totalplayers, int &currentIdx,
               card &topCard, string &activeColor,
-              card deck[], int &deckTop)
+              card deck[], int &deckTop, bool)
 {
     player* current = &players[currentIdx];
 
@@ -224,12 +229,15 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
     topCard = played;
     activeColor = played.color;
 
+    handleActionCards(played, currentIdx, totalplayers, isClockwise, 
+        activeColor, deck,deckTop, players );
+
     if (current->handSize == 1) {
         cout << "UNO!\n";
         Sleep(800);
     }
-
-    currentIdx = (currentIdx + 1) % totalplayers;
+    int step = isClockwise? 1 : -1;
+    currentIdx = (currentIdx + step + 1) % totalplayers;
 }
 
 // ===================== GAME =====================
@@ -263,7 +271,7 @@ void startGame(card deck[], int deckSize, int botAmount) {
     while (true) {
         playTurn(players, totalplayers, currentIdx,
                  topCard, activeColor,
-                 deck, deckTop);
+                 deck, deckTop,isClockwise);
 
         for (int i = 0; i < totalplayers; i++) {
             if (players[i].handSize == 0) {
