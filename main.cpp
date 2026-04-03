@@ -1,5 +1,6 @@
 #include <iostream>
 #include <conio.h>
+#include "Game.h"
 using namespace std;
 
 void startMenu()
@@ -77,6 +78,13 @@ int main()
             {
                 system("cls");
                 cout << "Kamu pilih " << select << " Bot!\n";
+
+                card deck[200];
+                int deckSize;
+
+                createDeck(deck, deckSize);
+                startGame(deck, deckSize, select);
+
                 system("pause");
                 break;
             }
