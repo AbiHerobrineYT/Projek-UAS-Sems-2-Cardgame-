@@ -48,7 +48,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
     if (val == "Reverse") {
         if (totalPlayers == 2) {
             skipNext = true;
-            cout << "\nHanya 2 pemain, giliran " << players[currentIdx].name << " dilewati!\n";
+            cout << "\nHanya 2 pemain.\n";
         } else {
         isClockwise = !isClockwise;
         cout << "\nArah putaran sekarang dibalik!\n";
@@ -89,7 +89,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             else choiceColor = "BLU";
         }
         activeColor = choiceColor; // Pastikan reference activeColor terupdate
-        cout << "\n[!] Warna meja sekarang berubah menjadi: " << activeColor << " [!]\n";
+        cout << "\n# Warna meja sekarang berubah menjadi: " << activeColor << " [!]\n";
     }
 
     // 5. PLUS 4 (+4) (REVISI: Logika pemilihan warna disamakan dengan Wild)
@@ -115,7 +115,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             addCard(&players[victimIdx], drawFromDeck(deck, deckTop));
         }
         skipNext = true; 
-        cout << "\n[!] Warna: " << activeColor << ". " << players[victimIdx].name << " ambil 4 kartu & dilewati!\n";
+        cout << "\n# Warna: " << activeColor << ". " << players[victimIdx].name << " ambil 4 kartu & dilewati!\n";
     }
 
     // 6. SWAP
@@ -151,9 +151,9 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             players[currentIdx].handSize = players[targetIdx].handSize;
             players[targetIdx].handSize = tempSize;
 
-            cout << "\n[!] SWAP BERHASIL! Tangan Anda ditukar dengan " << players[targetIdx].name << "!\n";
+            cout << "\n# SWAP BERHASIL! Tangan Anda ditukar dengan " << players[targetIdx].name << "!\n";
         } else {
-            cout << "\n[!] ID tidak valid atau memilih diri sendiri. Swap dibatalkan.\n";
+            cout << "\n# ID tidak valid atau memilih diri sendiri. Swap dibatalkan.\n";
         }
         cout << "Tekan tombol apa saja untuk lanjut...";
         _getch();
