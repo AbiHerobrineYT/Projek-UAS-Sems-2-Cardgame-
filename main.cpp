@@ -7,16 +7,18 @@ struct card {
     string value;
 };
 
+extern bool exitGame;
+
 // prototype
 void createDeck(card deck[], int &deckSize);
 void startGame(card deck[], int deckSize, int botAmount);
 
 void startMenu()
 {
-    cout << "\n-------------- CARD GAME --------------\n" << endl;
+    cout << "\n--------------- UNO GAME ---------------\n" << endl;
     cout << "\n        Press any button to Play        \n" << endl;
     cout << "\n        ESC to Exit...        " << endl;
-    cout << "\n---------------------------------------\n" << endl;
+    cout << "\n----------------------------------------\n" << endl;
 }
 
 void mainMenu(int mainMenuSelect)
@@ -93,7 +95,10 @@ int main()
                 createDeck(deck, deckSize);
                 startGame(deck, deckSize, select);
 
-                system("pause");
+                exitGame = false;
+                // _getch();
+
+                // system("pause");
                 break;
             }
         }

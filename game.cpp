@@ -24,6 +24,13 @@ struct player {
     bool isBot;
 };
 
+bool exitGame = false;
+
+enum InputAction {
+    DRAW = -1,
+    ESC  = -2
+};
+
 // ==== PROTOTYPE ====
 // Penting: Pastikan parameter menggunakan Reference (&) agar perubahan nilai bersifat permanen
 card drawFromDeck(card deck[], int &deckTop);
@@ -32,7 +39,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
                        card deck[], int &deckTop, player players[], bool &skipNext);
 void addCard(player* p, card c);
 
-// ===================== ANSI COLOR =====================
+//* ANSI CODE
 #define RESET   "\033[0m"
 #define BOLD    "\033[1m"
 #define RED     "\033[31m"
@@ -109,7 +116,7 @@ void showHand(player players[], int totalplayers, int currentIdx,
     }
     cout << "\n---------------------------------------------\n"
          << "\nKontrol:"
-         << "\n[ARROW] Pilih | [ENTER] Main | [D] Draw\n"; // sbnrnya dihapus buat saving space aja tp W/S tetep bisa
+         << "\n[ARROW] Pilih | [ENTER] Main | [D] Draw | [ESC] Keluar\n"; // sbnrnya dihapus buat saving space aja tp W/S tetep bisa
 }
 
 //* BAGIAN DECK DAN SHUFFLE
@@ -133,7 +140,7 @@ bool isValidPlay(card played, card topCard, string activeColor) {
 
 //* BOT AI
 int botChooseCard(player* bot, card topCard, string activeColor) {
-    cardNode* temp = bot->hand;
+    cardNode* temp = (*bot).hand;
     int i = 0;
     while (temp) {
         if (isValidPlay((*temp).data, topCard, activeColor)) return i;
@@ -153,13 +160,20 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
         showHand(players, totalplayers, currentIdx, topCard, activeColor, p, selected, isClockwise);
 
         int key = _getch();
-        if (key == 224) { 
+        if (key == 27) {
+            return ESC;
+        }
+        else if (key == 224) { 
             int arrow = _getch();
             if (arrow == 72 && selected > 0) selected--; 
             if (arrow == 80 && selected < (*p).handSize - 1) selected++; 
         }
-        else if (key == 'w' || key == 'W') { if (selected > 0) selected--; }
-        else if (key == 's' || key == 'S') { if (selected < (*p).handSize - 1) selected++; }
+        else if (key == 'w' || key == 'W') {
+            if (selected > 0) selected--;
+        }
+        else if (key == 's' || key == 'S') {
+            if (selected < (*p).handSize - 1) selected++;
+        }
         else if (key == 13) { 
             card c = getCard(p, selected);
             if (!isValidPlay(c, topCard, activeColor)) {
@@ -169,7 +183,7 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
             }
             return selected;
         }
-        else if (key == 'd' || key == 'D') return -1; 
+        else if (key == 'd' || key == 'D') return DRAW; 
     }
 }
 
@@ -182,14 +196,14 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
     bool skipNext = false; 
 
     system("cls");
-    cout << "\nGiliran: " << BOLD << current->name << RESET << (current->isBot ? " (BOT)" : "") << "\n";
+    cout << "\nGiliran: " << BOLD << (*current).name << RESET << ((*current).isBot ? " (BOT)" : "") << "\n";
 
     int chosenIdx;
-    if (current->isBot) {
+    if ((*current).isBot) {
         Sleep(1700);
         chosenIdx = botChooseCard(current, topCard, activeColor);
         if (chosenIdx == -1) {
-            cout << endl << current->name << " menarik kartu...\n";
+            cout << endl << (*current).name << " menarik kartu...\n";
             addCard(current, drawFromDeck(deck, deckTop));
             Sleep(1700);
             currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
@@ -197,11 +211,20 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
         }
     } else {
         chosenIdx = arrowSelect(players, totalplayers, currentIdx, current, topCard, activeColor, isClockwise);
-        if (chosenIdx == -1) {
+        if (chosenIdx == ESC) {
+            exitGame = true;
+            return;
+        }
+        if (chosenIdx == DRAW) {
             addCard(current, drawFromDeck(deck, deckTop));
             currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
             return;
         }
+        // if (chosenIdx == -1) {
+        //     addCard(current, drawFromDeck(deck, deckTop));
+        //     currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
+        //     return;
+        // }
     }
 
     card played = removeCard(current, chosenIdx);
@@ -212,8 +235,8 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
     handleActionCards(played, currentIdx, totalplayers, isClockwise, 
                       activeColor, deck, deckTop, players, skipNext);
 
-    if (current->handSize == 1) { cout << BOLD << YELLOW << "\nUNO!\n" << RESET; Sleep(1000); }
-    if (current->handSize == 0) return; 
+    if ((*current).handSize == 1) { cout << BOLD << YELLOW << "\nUNO!\n" << RESET; Sleep(1000); }
+    if ((*current).handSize == 0) return; 
 
     // Update Giliran Berdasarkan Arah (Step)
     int step = isClockwise ? 1 : -1;
@@ -264,13 +287,21 @@ void startGame(card deck[], int deckSize, int botAmount) {
     while (true) {
         playTurn(players, totalplayers, currentIdx, topCard, activeColor, deck, deckTop, isClockwise);
 
+        if (exitGame) {
+            cout << "\n\nAkan keluar segera...";
+            Sleep(1700);
+            break;
+        }
+
         for (int i = 0; i < totalplayers; i++) {
             if (players[i].handSize == 0) {
                 system("cls");
-                cout << "====================================\n";
-                cout << "   PEMENANG: " << players[i].name << "\n";
-                cout << "====================================\n";
-                _getch();
+                cout << "------------------------------------\n"
+                     << "         " << BOLD << YELLOW << "UNO GAME!!" << RESET << "\n"
+                     << "------------------------------------\n"
+                     << "\n\n\n\n          PEMENANG: " << players[i].name << "\n\n\n"
+                     << "Tekan tombol apa saja untuk kembali ke menu";
+                     _getch();
                 return;
             }
         }
