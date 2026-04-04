@@ -7,8 +7,7 @@ using namespace std;
 
 // Struktur yang sama dengan game.cpp agar kompatibel
 struct card {
-    string color;
-    string value;
+    string color, value;
 };
 
 struct cardNode {
@@ -26,6 +25,8 @@ struct player {
 // Prototype fungsi pendukung dari game.cpp
 void addCard(player* p, card c);
 card drawFromDeck(card deck[], int &deckTop);
+string getColor(string color);
+string displayCard(card c);
 
 /**
  * handleActionCards
@@ -41,18 +42,23 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
     string val = played.value;
     int step = isClockwise ? 1 : -1;
 
-    cout << "\n Mengeluarkan kartu: " << val << " \n";
+    cout << "\nMengeluarkan kartu: " << displayCard(played) << " \n";
 
     // 1. REVERSE
     if (val == "Reverse") {
+        if (totalPlayers == 2) {
+            skipNext = true;
+            cout << "\nHanya 2 pemain, giliran " << players[currentIdx].name << " dilewati!\n";
+        } else {
         isClockwise = !isClockwise;
-        cout << "Arah putaran sekarang dibalik!\n";
+        cout << "\nArah putaran sekarang dibalik!\n";
+        }
     }
 
     // 2. SKIP
     else if (val == "Skip") {
         skipNext = true; 
-        cout << "Pemain berikutnya akan dilewati!\n";
+        cout << "\nPemain berikutnya akan dilewati!\n";
     }
 
     // 3. PLUS 2 (+2)
@@ -62,7 +68,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             addCard(&players[victimIdx], drawFromDeck(deck, deckTop));
         }
         skipNext = true; 
-        cout << players[victimIdx].name << " mengambil 2 kartu dan dilewati!\n";
+        cout << endl << players[victimIdx].name << " mengambil 2 kartu!\n";
     }
 
     // 4. WILD (REVISI: Ditambahkan pembersihan buffer dan feedback)
@@ -153,5 +159,5 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
         _getch();
     }
     
-    Sleep(1500); 
+    Sleep(1700); 
 }

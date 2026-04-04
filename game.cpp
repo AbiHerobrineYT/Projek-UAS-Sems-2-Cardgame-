@@ -9,8 +9,7 @@ using namespace std;
 
 // ==== STRUCT ====
 struct card {
-    string color;
-    string value;
+    string color, value;
 };
 
 struct cardNode {
@@ -56,63 +55,64 @@ string displayCard(card c) {
 // ===================== LINKED LIST =====================
 void addCard(player* p, card c) {
     cardNode* newNode = new cardNode{c, nullptr};
-    if (!p->hand) p->hand = newNode;
+    if (!(*p).hand) (*p).hand = newNode;
     else {
-        cardNode* temp = p->hand;
-        while (temp->next) temp = temp->next;
-        temp->next = newNode;
+        cardNode* temp = (*p).hand;
+        while ((*temp).next) temp = (*temp).next;
+        (*temp).next = newNode;
     }
-    p->handSize++;
+    (*p).handSize++;
 }
 
 card removeCard(player* p, int index) {
-    cardNode* temp = p->hand;
+    cardNode* temp = (*p).hand;
     cardNode* prev = nullptr;
     for (int i = 0; i < index; i++) {
         prev = temp;
-        temp = temp->next;
+        temp = (*temp).next;
     }
-    card removed = temp->data;
-    if (!prev) p->hand = temp->next;
-    else prev->next = temp->next;
+    card removed = (*temp).data;
+    if (!prev) (*p).hand = (*temp).next;
+    else prev->next = (*temp).next;
     delete temp;
-    p->handSize--;
+    (*p).handSize--;
     return removed;
 }
 
 card getCard(player* p, int index) {
-    cardNode* temp = p->hand;
-    for (int i = 0; i < index; i++) temp = temp->next;
-    return temp->data;
+    cardNode* temp = (*p).hand;
+    for (int i = 0; i < index; i++) temp = (*temp).next;
+    return (*temp).data;
 }
 
-// ===================== DISPLAY =====================
+//* BAGIAN DISPLAY
 void showHand(player players[], int totalplayers, int currentIdx,
               card topCard, string activeColor,
               player* p, int selected, bool isClockwise)
 {
-    cout << "Top Card: " << displayCard(topCard)
-         << " | Warna kartu di Meja: " << getColor(activeColor) 
-         << activeColor << "\n" << RESET;
+    cout << "---------------------------------------------\n" << endl
+         << "Kartu paling atas: \n" << displayCard(topCard) << endl;
 
     for (int i = 0; i < totalplayers; i++) {
         if (i == currentIdx) continue;
-        cout << "- " << players[i].name << " (" << players[i].handSize << " kartu)\n";
+        cout << "\n- " << players[i].name << " (" << players[i].handSize << " kartu)\n";
     }
 
-    cout << "\n====================================\n";
-    cardNode* temp = p->hand;
+    cout << "\n---------------------------------------------\n";
+    cardNode* temp = (*p).hand;
     int i = 0;
-    cout << "\nKartu " << BOLD << p->name << RESET << ":\n";
+    cout << "\nKartu " << BOLD << (*p).name << RESET << ":\n";
     while (temp) {
-        cout << (i == selected ? " --> " : "     ") << displayCard(temp->data) << "\n";
-        temp = temp->next;
+        cout << (i == selected ? " --> " : "     ") << displayCard((*temp).data) << "\n";
+        temp = (*temp).next;
         i++;
     }
-    cout << "\n[W/S atau ARROW] Pilih | [ENTER] Main | [D] Draw\n";
+    cout << "\n---------------------------------------------\n"
+         << "\nKontrol:"
+         << "\n[ARROW] Pilih | [ENTER] Main | [D] Draw\n"; // sbnrnya dihapus buat saving space aja tp W/S tetep bisa
 }
 
-// ===================== DECK & SHUFFLE =====================
+//* BAGIAN DECK DAN SHUFFLE
 void shuffleDeck(card deck[], int size) {
     for (int i = size - 1; i > 0; i--) {
         int j = rand() % (i + 1);
@@ -125,19 +125,19 @@ card drawFromDeck(card deck[], int &deckTop) {
     return deck[deckTop--];
 }
 
-// ===================== VALIDASI =====================
+//* VALIDASI KARTU
 bool isValidPlay(card played, card topCard, string activeColor) {
     if (played.color == "WILD") return true;
     return (played.color == activeColor || played.value == topCard.value);
 }
 
-// ===================== BOT =====================
+//* BOT AI
 int botChooseCard(player* bot, card topCard, string activeColor) {
     cardNode* temp = bot->hand;
     int i = 0;
     while (temp) {
-        if (isValidPlay(temp->data, topCard, activeColor)) return i;
-        temp = temp->next;
+        if (isValidPlay((*temp).data, topCard, activeColor)) return i;
+        temp = (*temp).next;
         i++;
     }
     return -1;
@@ -156,15 +156,15 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
         if (key == 224) { 
             int arrow = _getch();
             if (arrow == 72 && selected > 0) selected--; 
-            if (arrow == 80 && selected < p->handSize - 1) selected++; 
+            if (arrow == 80 && selected < (*p).handSize - 1) selected++; 
         }
         else if (key == 'w' || key == 'W') { if (selected > 0) selected--; }
-        else if (key == 's' || key == 'S') { if (selected < p->handSize - 1) selected++; }
+        else if (key == 's' || key == 'S') { if (selected < (*p).handSize - 1) selected++; }
         else if (key == 13) { 
             card c = getCard(p, selected);
             if (!isValidPlay(c, topCard, activeColor)) {
                 cout << RED << "Kartu tidak cocok!" << RESET << "\n";
-                Sleep(800);
+                Sleep(1000);
                 continue;
             }
             return selected;
@@ -186,12 +186,12 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 
     int chosenIdx;
     if (current->isBot) {
-        Sleep(1200);
+        Sleep(1700);
         chosenIdx = botChooseCard(current, topCard, activeColor);
         if (chosenIdx == -1) {
-            cout << current->name << " menarik kartu...\n";
+            cout << endl << current->name << " menarik kartu...\n";
             addCard(current, drawFromDeck(deck, deckTop));
-            Sleep(800);
+            Sleep(1700);
             currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
             return;
         }
@@ -212,7 +212,7 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
     handleActionCards(played, currentIdx, totalplayers, isClockwise, 
                       activeColor, deck, deckTop, players, skipNext);
 
-    if (current->handSize == 1) { cout << BOLD << YELLOW << "\nUNO!\n" << RESET; Sleep(800); }
+    if (current->handSize == 1) { cout << BOLD << YELLOW << "\nUNO!\n" << RESET; Sleep(1000); }
     if (current->handSize == 0) return; 
 
     // Update Giliran Berdasarkan Arah (Step)
@@ -221,16 +221,18 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 
     // Jika Skip aktif (dari +2, +4, atau Skip card)
     if (skipNext) {
-        cout << "[!] Giliran " << players[currentIdx].name << " DILEWATI!\n";
+        cout << "\n[!] Giliran " << players[currentIdx].name << " DILEWATI!\n";
         currentIdx = (currentIdx + step + totalplayers) % totalplayers;
-        Sleep(1500);
+        Sleep(1700);
     }
 }
 
-// ===================== GAME START =====================
+//* GAME START
 void startGame(card deck[], int deckSize, int botAmount) {
     srand(time(0));
     shuffleDeck(deck, deckSize);
+    // string namaBot[] = {"Alfan", "Iren", "Hima", "Ahnaf", "Rahel"};
+    // int jumlahNamaBot = sizeof(namaBot) / sizeof(namaBot[0]);
 
     int totalplayers = botAmount + 1;
     player players[4];
@@ -238,6 +240,11 @@ void startGame(card deck[], int deckSize, int botAmount) {
 
     cout << "Nama Anda: "; cin >> players[0].name;
     players[0].isBot = false;
+
+    // for (int i = jumlahNamaBot - 1; i > 0; i--) { //? ngacak nama bot biar gak bingugn di UI
+    //     int j  = rand() % (i + 1);
+    //     swap(namaBot[i], namaBot[j]);
+    // }
 
     for (int i = 1; i <= botAmount; i++) {
         players[i].name = "Bot " + to_string(i);
