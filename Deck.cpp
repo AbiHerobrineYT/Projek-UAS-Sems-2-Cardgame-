@@ -8,41 +8,54 @@ struct card
     string value;
 };
 
-void createDeck (card kartu[], int &deckSize)
+void createDeck(card kartu[], int &deckSize)
 {
     string colors[] = {"RED", "YEL", "GRN", "BLU"};
     int index = 0;
 
-    for (int c = 0; c<4; c++)
-    {   
-        kartu[index++] = {colors[c], "0"};
-        for (int i = 1; i<= 9;i++)
-        {
-            kartu[index++] = {colors[c], to_string(i)};
-            kartu[index++] = {colors[c], to_string(i)};
-        }
-        
-        string actionCard[] = {"Reverse","Skip","+2"};
+    // Weight
+    int repeatNumber = 3;
+    int repeatAction = 5/2;
+    int repeatWild = 3/2;
 
-        for (int n = 0; n < 3; n++)
+    // Kartu Berwarna
+    for (int c = 0; c < 4; c++)
+    {
+        // Angka 0
+        for (int r = 0; r < repeatNumber; r++)
         {
-            kartu[index++] = {colors[c], actionCard[n]};
-            kartu[index++] = {colors[c], actionCard[n]};
+            kartu[index++] = {colors[c], "0"};
         }
-    }
-    
-    string wildCard[] = {"+4","Swap","Wild"};
-        for (int o =0; o<4;o++)
+
+        // Angka 1 - 9
+        for (int i = 1; i <= 9; i++)
         {
-        for (int p = 0; p<3; p++)
+            for (int r = 0; r < repeatNumber; r++)
             {
-                kartu[index++] = {"HTM", wildCard[p]};
+                kartu[index++] = {colors[c], to_string(i)};
             }
         }
-        deckSize = index;
-}
 
-// main()
-// {
-//     return 0;
-// }
+        // Action Cards
+        string actionCard[] = {"Reverse", "Skip", "+2"};
+        for (int n = 0; n < 3; n++)
+        {
+            for (int r = 0; r < repeatAction; r++)
+            {
+                kartu[index++] = {colors[c], actionCard[n]};
+            }
+        }
+    }
+
+    // Wild Cards
+    string wildCard[] = {"+4", "Swap", "Wild"};
+    for (int p = 0; p < 3; p++)
+    {
+        for (int r = 0; r < repeatWild; r++)
+        {
+            kartu[index++] = {"HTM", wildCard[p]};
+        }
+    }
+
+    deckSize = index;
+}
