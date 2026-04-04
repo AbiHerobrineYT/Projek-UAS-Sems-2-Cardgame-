@@ -53,7 +53,7 @@ void createDeck(card kartu[], int &deckSize)
     {
         for (int r = 0; r < repeatWild; r++)
         {
-            kartu[index++] = {"HTM", wildCard[p]};
+            kartu[index++] = {"WILD", wildCard[p]};
         }
     }
 
