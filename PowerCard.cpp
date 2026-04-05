@@ -6,7 +6,6 @@
 
 using namespace std;
 
-// Struktur yang sama dengan game.cpp agar kompatibel
 struct card {
     string color, value;
 };
@@ -23,7 +22,6 @@ struct player {
     bool isBot;
 };
 
-// Ansi Color
 #define RESET   "\033[0m"
 #define BOLD    "\033[1m"
 #define RED     "\033[31m"
@@ -31,20 +29,12 @@ struct player {
 #define GREEN   "\033[32m"
 #define BLUE    "\033[34m"
 
-// Prototype fungsi pendukung dari game.cpp
 void addCard(player* p, card c);
 card drawFromDeck(card deck[], int &deckTop);
 string getColor(string color);
 string displayCard(card c, bool isTopCard = false, string activeColor = "");
 void showDrawnCards(player* p, card drawn[], int count);
 
-
-/**
- * handleActionCards
- * Mengatur semua logika kartu sakti (Reverse, Skip, +2, +4, Wild, Swap).
- * Menggunakan Reference (&) agar perubahan nilai variabel di sini 
- * permanen pada saat kembali ke fungsi utama di game.cpp.
- */
 void handleActionCards(card played, int &currentIdx, int totalPlayers, 
                        bool &isClockwise, string &activeColor, 
                        card deck[], int &deckTop, player players[],
@@ -55,7 +45,6 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
 
     cout << "\nMengeluarkan kartu: " << displayCard(played, true, activeColor) << " \n";
 
-    // 1. REVERSE
     if (val == "Reverse") {
         if (totalPlayers == 2) {
             skipNext = true;
@@ -66,13 +55,11 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
         }
     }
 
-    // 2. SKIP
     else if (val == "Skip") {
         skipNext = true; 
         cout << "\nPemain berikutnya akan dilewati!\n";
     }
 
-    // 3. PLUS 2 (+2)
     else if (val == "+2") {
         int victimIdx = (currentIdx + step + totalPlayers) % totalPlayers;
 
@@ -92,15 +79,13 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
         skipNext = true; 
     }
 
-    // 4. WILD (REVISI: Ditambahkan pembersihan buffer dan feedback)
     else if (val == "Wild") {
         string choiceColor;
         if (players[currentIdx].isBot) {
             string colors[] = {"RED", "YEL", "GRN", "BLU"};
             choiceColor = colors[rand() % 4];
         } else {
-            cout << "Pilih Warna Baru (R: Red, Y: Yellow, G: Green, B: Blue): ";
-            // Membersihkan sisa input agar _getch() tidak terlewati
+            cout << "\nPilih Warna Baru (R/Y/G/B): ";
             while (_kbhit()) _getch(); 
             
             char choice = toupper(_getch());
@@ -109,11 +94,10 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             else if (choice == 'G') choiceColor = "GRN";
             else choiceColor = "BLU";
         }
-        activeColor = choiceColor; // Pastikan reference activeColor terupdate
-        cout << "\n# Warna meja sekarang berubah menjadi: " << getColor(activeColor) << BOLD << activeColor << RESET << " [!]\n";
+        activeColor = choiceColor;
+        cout << "\n# Warna meja sekarang berubah menjadi: " << getColor(activeColor) << BOLD << activeColor << RESET << "\n";
     }
 
-    // 5. PLUS 4 (+4) (REVISI: Logika pemilihan warna disamakan dengan Wild)
     else if (val == "+4") {
         string choiceColor;
 
@@ -121,7 +105,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             string colors[] = {"RED", "YEL", "GRN", "BLU"};
             choiceColor = colors[rand() % 4];
         } else {
-            cout << "Pilih Warna Baru untuk +4 (R/Y/G/B): ";
+            cout << "\nPilih Warna Baru untuk +4 (R/Y/G/B): ";
             while (_kbhit()) _getch();
 
             char choice = toupper(_getch());
@@ -151,7 +135,6 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
         skipNext = true; 
     }
 
-    // 6. SWAP
     else if (val == "Swap") {
         int targetIdx = -1;
 
@@ -168,7 +151,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             while (true) {
                 system("cls");
 
-                cout << "--- PILIH TARGET SWAP ---\n";
+                cout << "─────────────── PILIH TARGET SWAP ──────────────\n\n";
 
                 for (int i = 0; i < totalPlayers; i++) {
                     if (i == currentIdx) continue;
@@ -217,12 +200,13 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
         players[currentIdx].handSize = players[targetIdx].handSize;
         players[targetIdx].handSize = tempSize;
 
-        cout << "\n# SWAP BERHASIL! "
-            << players[currentIdx].name
-            << " bertukar kartu dengan "
-            << players[targetIdx].name << "!\n";
+        cout << "\n[#] SWAP BERHASIL! ";
+                Sleep(1000);
+        cout << "\n\n" << players[currentIdx].name 
+             << " bertukar kartu dengan "
+             << players[targetIdx].name << "!\n";
 
-        cout << "Tekan tombol apa saja untuk lanjut...";
+        cout << "\nTekan tombol apa saja untuk lanjut...";
         _getch();
 
     }

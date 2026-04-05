@@ -33,8 +33,6 @@ enum InputAction {
     ESC  = -2
 };
 
-// ==== PROTOTYPE ====
-// Penting: Pastikan parameter menggunakan Reference (&) agar perubahan nilai bersifat permanen
 card drawFromDeck(card deck[], int &deckTop);
 void handleActionCards(card played, int &currentIdx, int totalPlayers, 
                        bool &isClockwise, string &activeColor, 
@@ -48,6 +46,7 @@ void addCard(player* p, card c);
 #define YELLOW  "\033[33m"
 #define GREEN   "\033[32m"
 #define BLUE    "\033[34m"
+#define BRIGHT_CYAN    "\033[96m" 
 
 string getColor(string color) {
     if (color == "RED") return RED;
@@ -68,7 +67,6 @@ string displayCard(card c, bool isTopCard = false, string activeColor = "")
     return getColor(colorToUse) + BOLD + "| " + c.value + " |" + RESET;
 }
 
-// ===================== LINKED LIST =====================
 void addCard(player* p, card c) {
     cardNode* newNode = new cardNode{c, nullptr};
     if (!(*p).hand) (*p).hand = newNode;
@@ -86,17 +84,16 @@ void showDrawnCards(player* p, card drawn[], int count)
 
     system("cls");
 
-    cout << "====================================\n";
-    cout << "        KAMU MENDAPATKAN\n";
-    cout << "====================================\n\n";
+    cout << "      KAMU MENDAPATKAN\n"
+         << "───────────────────────────────\n\n";
 
     for (int i = 0; i < count; i++) {
         Sleep(250);
         cout << "  + " << displayCard(drawn[i]) << endl;
     }
 
-    cout << "\n====================================\n";
-    cout << "Tekan tombol apa saja...";
+    cout << "\n───────────────────────────────\n\n"
+         << "[ENTER] Gunakan kartu sekarang | [S] Simpan untuk nanti\n";
     _getch();
 }
 
@@ -121,20 +118,22 @@ card getCard(player* p, int index) {
     return (*temp).data;
 }
 
-//* BAGIAN DISPLAY
+// Bagian Display
 void showHand(player players[], int totalplayers, int currentIdx,
               card topCard, string activeColor,
               player* p, int selected, bool isClockwise)
 {
-    cout << "---------------------------------------------\n" << endl
-         << "Kartu paling atas: \n" << displayCard(topCard, true, activeColor) << endl;
+    cout << BOLD << "Kartu paling atas: \n" << RESET << displayCard(topCard, true, activeColor) << endl;
 
     for (int i = 0; i < totalplayers; i++) {
-        if (i == currentIdx) continue;
-        cout << "\n- " << players[i].name << " (" << players[i].handSize << " kartu)\n";
+        if (i == currentIdx)
+        cout << BOLD << "\nList pemain:" << RESET
+             << "\n- " << players[i].name << " (" << players[i].handSize << " kartu) <-- Kamu" << RESET;
+    else
+        cout << "\n- " << players[i].name << " (" << players[i].handSize << " kartu)";
     }
 
-    cout << "\n---------------------------------------------\n";
+    cout << BRIGHT_CYAN << BOLD << "\n\n───────────────────────────────────────────────\n" << RESET;
     cardNode* temp = (*p).hand;
     int i = 0;
     cout << "\nKartu " << BOLD << (*p).name << RESET << ":\n";
@@ -143,12 +142,12 @@ void showHand(player players[], int totalplayers, int currentIdx,
         temp = (*temp).next;
         i++;
     }
-    cout << "\n---------------------------------------------\n"
+    cout << BRIGHT_CYAN << BOLD << "\n───────────────────────────────────────────────\n" << RESET
          << "\nKontrol:"
          << "\n[ARROW] Pilih | [ENTER] Main | [D] Draw | [ESC] Keluar\n"; // sbnrnya dihapus buat saving space aja tp W/S tetep bisa
 }
 
-//* BAGIAN DECK DAN SHUFFLE
+//Bagian Shuffle
 void shuffleDeck(card deck[], int size) {
     for (int i = size - 1; i > 0; i--) {
         int j = rand() % (i + 1);
@@ -161,7 +160,7 @@ card drawFromDeck(card deck[], int &deckTop) {
     return deck[deckTop--];
 }
 
-//* VALIDASI KARTU
+// Sistem validasi kartu
 bool isValidPlay(card played, card topCard, string activeColor)
 {
     if (topCard.value == "Swap")
@@ -176,7 +175,7 @@ bool isValidPlay(card played, card topCard, string activeColor)
     return (played.color == activeColor || played.value == topCard.value);
 }
 
-//* BOT AI
+// Algoritma basic bot AI
 int botChooseCard(player* bot, card topCard, string activeColor) {
     cardNode* temp = (*bot).hand;
     int i = 0;
@@ -188,7 +187,7 @@ int botChooseCard(player* bot, card topCard, string activeColor) {
     return -1;
 }
 
-// ===================== INPUT =====================
+// Bagian kontrols (inputan)
 int arrowSelect(player players[], int totalplayers, int currentIdx,
                 player* p, card topCard, string activeColor, bool isClockwise)
 {
@@ -225,7 +224,7 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
     }
 }
 
-// ===================== TURN =====================
+// Bagian turn
 void playTurn(player players[], int totalplayers, int &currentIdx,
               card &topCard, string &activeColor,
               card deck[], int &deckTop, bool &isClockwise) // Reference isClockwise
@@ -266,29 +265,20 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
             currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
             return;
         }
-        // if (chosenIdx == -1) {
-        //     addCard(current, drawFromDeck(deck, deckTop));
-        //     currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
-        //     return;
-        // }
     }
 
     card played = removeCard(current, chosenIdx);
     topCard = played;
     if (played.color != "WILD") activeColor = played.color;
-
-    // Memproses efek kartu sakti
     handleActionCards(played, currentIdx, totalplayers, isClockwise, 
                       activeColor, deck, deckTop, players, skipNext);
 
     if ((*current).handSize == 1) { cout << BOLD << YELLOW << "\nUNO!\n" << RESET; Sleep(1000); }
     if ((*current).handSize == 0) return; 
 
-    // Update Giliran Berdasarkan Arah (Step)
     int step = isClockwise ? 1 : -1;
     currentIdx = (currentIdx + step + totalplayers) % totalplayers;
 
-    // Jika Skip aktif (dari +2, +4, atau Skip card)
     if (skipNext) {
         cout << "\n[!] Giliran " << players[currentIdx].name << " DILEWATI!\n";
         currentIdx = (currentIdx + step + totalplayers) % totalplayers;
@@ -300,8 +290,7 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 void startGame(card deck[], int deckSize, int botAmount) {
     srand(time(0));
     shuffleDeck(deck, deckSize);
-    // string namaBot[] = {"Alfan", "Iren", "Hima", "Ahnaf", "Rahel"};
-    // int jumlahNamaBot = sizeof(namaBot) / sizeof(namaBot[0]);
+
 
     int totalplayers = botAmount + 1;
     player players[4];
@@ -358,10 +347,6 @@ void startGame(card deck[], int deckSize, int botAmount) {
     players[0].name = inputNama;
     players[0].isBot = false;
 
-    // for (int i = jumlahNamaBot - 1; i > 0; i--) { //? ngacak nama bot biar gak bingugn di UI
-    //     int j  = rand() % (i + 1);
-    //     swap(namaBot[i], namaBot[j]);
-    // }
 
     for (int i = 1; i <= botAmount; i++) {
         players[i].name = "Bot " + to_string(i);
@@ -401,11 +386,11 @@ void startGame(card deck[], int deckSize, int botAmount) {
         for (int i = 0; i < totalplayers; i++) {
             if (players[i].handSize == 0) {
                 system("cls");
-                cout << "------------------------------------\n"
-                     << "         " << BOLD << YELLOW << "UNO GAME!!" << RESET << "\n"
-                     << "------------------------------------\n"
-                     << "\n\n\n\n          PEMENANG: " << players[i].name << "\n\n\n"
-                     << "Tekan tombol apa saja untuk kembali ke menu";
+                cout << BRIGHT_CYAN << BOLD << "───────────────────────────────────────────────\n" << RESET
+                     << "               " << BOLD << YELLOW << "UNO GAME!!" << RESET << "\n"
+                     << BRIGHT_CYAN << BOLD << "───────────────────────────────────────────────\n" << RESET
+                     << "\n\n          PEMENANG: " << players[i].name << "\n\n\n"
+                     << "\n\n\nTekan tombol apa saja untuk kembali ke menu";
                      _getch();
                 return;
             }
