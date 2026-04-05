@@ -13,9 +13,9 @@ void createDeck(card kartu[], int &deckSize)
     string colors[] = {"RED", "YEL", "GRN", "BLU"};
     int index = 0;
 
-    int repeatNumber = 6;
-    int repeatAction = 4;
-    int repeatWild = 3;
+    int repeatNumber = 1;
+    int repeatAction = 1;
+    int repeatWild = 6;
 
     for (int c = 0; c < 4; c++)
     {

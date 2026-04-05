@@ -33,7 +33,7 @@ void addCard(player* p, card c);
 card drawFromDeck(card deck[], int &deckTop);
 string getColor(string color);
 string displayCard(card c, bool isTopCard = false, string activeColor = "");
-void showDrawnCards(player* p, card drawn[], int count);
+char showDrawnCards(player* p, card drawn[], int count, bool isPenaltyDraw, bool isPlayable);
 
 void handleActionCards(card played, int &currentIdx, int totalPlayers, 
                        bool &isClockwise, string &activeColor, 
@@ -63,6 +63,11 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
     else if (val == "+2") {
         int victimIdx = (currentIdx + step + totalPlayers) % totalPlayers;
 
+        Sleep(1200);
+
+        cout << players[victimIdx].name << " harus mengambil 2 kartu!\n";
+        Sleep(1000);
+
         card drawn[2];
 
         for (int i = 0; i < 2; i++) {
@@ -70,32 +75,44 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             addCard(&players[victimIdx], drawn[i]);
         }
 
-        cout << endl << players[victimIdx].name << " mengambil 2 kartu!\n";
+        Sleep(800);
 
-        Sleep(1500);
-
-        showDrawnCards(&players[victimIdx], drawn, 2);
+        showDrawnCards(&players[victimIdx], drawn, 2, true, false);
 
         skipNext = true; 
     }
 
     else if (val == "Wild") {
         string choiceColor;
+
         if (players[currentIdx].isBot) {
             string colors[] = {"RED", "YEL", "GRN", "BLU"};
             choiceColor = colors[rand() % 4];
-        } else {
+        } 
+        else {
             cout << "\nPilih Warna Baru (R/Y/G/B): ";
-            while (_kbhit()) _getch(); 
-            
-            char choice = toupper(_getch());
-            if (choice == 'R') choiceColor = "RED";
-            else if (choice == 'Y') choiceColor = "YEL";
-            else if (choice == 'G') choiceColor = "GRN";
-            else choiceColor = "BLU";
+            while (_kbhit()) _getch();
+
+            char choice;
+            while (true) {
+                choice = toupper(_getch());
+
+                if (choice == 'R') { choiceColor = "RED"; break; }
+                else if (choice == 'Y') { choiceColor = "YEL"; break; }
+                else if (choice == 'G') { choiceColor = "GRN"; break; }
+                else if (choice == 'B') { choiceColor = "BLU"; break; }
+                else {
+                    cout << RED << "\nInput tidak valid! Gunakan R/Y/G/B\n" << RESET;
+                    Sleep(800);
+                    cout << "\rPilih Warna Baru (R/Y/G/B): ";
+                }
+            }
         }
+
         activeColor = choiceColor;
-        cout << "\n# Warna meja sekarang berubah menjadi: " << getColor(activeColor) << BOLD << activeColor << RESET << "\n";
+
+        cout << "\n# Warna meja sekarang berubah menjadi: "
+            << getColor(activeColor) << BOLD << activeColor << RESET << "\n";
     }
 
     else if (val == "+4") {
@@ -104,45 +121,70 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
         if (players[currentIdx].isBot) {
             string colors[] = {"RED", "YEL", "GRN", "BLU"};
             choiceColor = colors[rand() % 4];
-        } else {
+        } 
+        else {
             cout << "\nPilih Warna Baru untuk +4 (R/Y/G/B): ";
             while (_kbhit()) _getch();
 
-            char choice = toupper(_getch());
-            if (choice == 'R') choiceColor = "RED";
-            else if (choice == 'Y') choiceColor = "YEL";
-            else if (choice == 'G') choiceColor = "GRN";
-            else choiceColor = "BLU";
+            char choice;
+            while (true) {
+                choice = toupper(_getch());
+
+                if (choice == 'R') { choiceColor = "RED"; break; }
+                else if (choice == 'Y') { choiceColor = "YEL"; break; }
+                else if (choice == 'G') { choiceColor = "GRN"; break; }
+                else if (choice == 'B') { choiceColor = "BLU"; break; }
+                else {
+                    cout << RED << "\nInput tidak valid! Gunakan R/Y/G/B\n" << RESET;
+                    Sleep(800);
+                    cout << "\rPilih Warna Baru untuk +4 (R/Y/G/B): ";
+                }
+            }
         }
 
         activeColor = choiceColor;
 
         int victimIdx = (currentIdx + step + totalPlayers) % totalPlayers;
 
-        Sleep(1500);
+        Sleep(1200);
+
+        cout << "# Warna berubah menjadi: "
+            << getColor(activeColor) << BOLD << activeColor << RESET << endl;
+        Sleep(800);
+
+        cout << players[victimIdx].name << " harus mengambil 4 kartu!\n";
+        Sleep(1000);
 
         card drawn[4];
-
         for (int i = 0; i < 4; i++) {
             drawn[i] = drawFromDeck(deck, deckTop);
             addCard(&players[victimIdx], drawn[i]);
         }
 
-        cout << "\n# Warna: " << getColor(activeColor) << BOLD << activeColor << RESET << ". " << players[victimIdx].name << " ambil 4 kartu & dilewati!\n";
+        Sleep(800);
 
-        showDrawnCards(&players[victimIdx], drawn, 4);
+        showDrawnCards(&players[victimIdx], drawn, 4, true, false);
 
-        skipNext = true; 
+        skipNext = true;
+        return;
     }
 
     else if (val == "Swap") {
         int targetIdx = -1;
 
-        if (players[currentIdx].isBot) {
-            do {
-                targetIdx = rand() % totalPlayers;
-            } while (targetIdx == currentIdx);
-        } 
+       if (players[currentIdx].isBot) {
+        int minCards = INT_MAX;
+        targetIdx = -1;
+
+        for (int i = 0; i < totalPlayers; i++) {
+            if (i == currentIdx) continue;
+
+            if (players[i].handSize < minCards) {
+                minCards = players[i].handSize;
+                targetIdx = i;
+            }
+        }
+    }
         else {
             int selected = 0;
 

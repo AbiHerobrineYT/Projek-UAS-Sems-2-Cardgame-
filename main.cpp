@@ -94,9 +94,6 @@ int main()
                 startGame(deck, deckSize, select);
 
                 exitGame = false;
-                // _getch();
-
-                // system("pause");
                 break;
             }
         }

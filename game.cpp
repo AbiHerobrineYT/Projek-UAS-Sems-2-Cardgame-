@@ -9,7 +9,7 @@
 
 using namespace std;
 
-// ==== STRUCT ====
+// STRUCT
 struct card {
     string color, value;
 };
@@ -39,7 +39,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
                        card deck[], int &deckTop, player players[], bool &skipNext);
 void addCard(player* p, card c);
 
-//* ANSI CODE
+// ANSI CODE
 #define RESET   "\033[0m"
 #define BOLD    "\033[1m"
 #define RED     "\033[31m"
@@ -78,9 +78,9 @@ void addCard(player* p, card c) {
     (*p).handSize++;
 }
 
-void showDrawnCards(player* p, card drawn[], int count)
+char showDrawnCards(player* p, card drawn[], int count, bool isPenaltyDraw, bool isPlayable)
 {
-    if ((*p).isBot) return;
+    if ((*p).isBot) return 'S';
 
     system("cls");
 
@@ -91,10 +91,32 @@ void showDrawnCards(player* p, card drawn[], int count)
         Sleep(250);
         cout << "  + " << displayCard(drawn[i]) << endl;
     }
+    cout << "\n\n───────────────────────────────\n";
 
-    cout << "\n───────────────────────────────\n\n"
-         << "[ENTER] Gunakan kartu sekarang | [S] Simpan untuk nanti\n";
-    _getch();
+    if (isPenaltyDraw) {
+        cout << "\n====================================\n";
+        cout << "Tekan tombol apa saja...";
+        _getch();
+        return 'S';
+    }
+
+    if (!isPlayable) {
+
+        cout << "\n====================================\n";
+        cout << "Kartu tidak bisa dimainkan!\n";
+        cout << "Tekan tombol apa saja...";
+        _getch();
+        return 'S';
+    }
+        cout << "\n====================================\n";
+        cout << "[ENTER] Gunakan kartu sekarang | [S] Simpan untuk nanti\n";
+
+    while (true) {
+        int key = _getch();
+
+        if (key == 13) return 'E';
+        if (key == 's' || key == 'S') return 'S';
+    }
 }
 
 card removeCard(player* p, int index) {
@@ -227,54 +249,137 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
 // Bagian turn
 void playTurn(player players[], int totalplayers, int &currentIdx,
               card &topCard, string &activeColor,
-              card deck[], int &deckTop, bool &isClockwise) // Reference isClockwise
+              card deck[], int &deckTop, bool &isClockwise)
 {
     player* current = &players[currentIdx];
     bool skipNext = false; 
 
     system("cls");
-    cout << "\nGiliran: " << BOLD << (*current).name << RESET << ((*current).isBot ? " (BOT)" : "") << "\n";
+    cout << "\nGiliran: " << BOLD << (*current).name << RESET 
+         << ((*current).isBot ? " (BOT)" : "") << "\n";
 
     int chosenIdx;
+
     if ((*current).isBot) {
         Sleep(1700);
         chosenIdx = botChooseCard(current, topCard, activeColor);
+
         if (chosenIdx == -1) {
             cout << endl << (*current).name << " menarik kartu...\n";
+            Sleep(800);
 
             card drawn = drawFromDeck(deck, deckTop);
-            addCard(current, drawn);
 
-            Sleep(1700);
-            currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
+            cout << (*current).name << " mendapatkan kartu...\n";
+            Sleep(800);
+
+            if (isValidPlay(drawn, topCard, activeColor)) {
+                cout << (*current).name << " langsung memainkan kartu!\n";
+                Sleep(800);
+
+                topCard = drawn;
+                if (drawn.color != "WILD")
+                    activeColor = drawn.color;
+
+                handleActionCards(drawn, currentIdx, totalplayers,
+                                  isClockwise, activeColor,
+                                  deck, deckTop, players, skipNext);
+
+                if ((*current).handSize == 1) {
+                    cout << BOLD << YELLOW << "\nUNO!\n" << RESET;
+                    Sleep(1000);
+                }
+
+                if ((*current).handSize == 0) return;
+
+                int step = isClockwise ? 1 : -1;
+                currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+
+                if (skipNext) {
+                    cout << "\n[!] Giliran " << players[currentIdx].name << " DILEWATI!\n";
+                    currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+                    Sleep(1700);
+                }
+
+                return;
+            }
+            else {
+                addCard(current, drawn);
+                cout << (*current).name << " menyimpan kartu.\n";
+                Sleep(1000);
+            }
+
+            int step = isClockwise ? 1 : -1;
+            currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+
+            if (skipNext) {
+                cout << "\n[!] Giliran " << players[currentIdx].name << " DILEWATI!\n";
+                currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+                Sleep(1700);
+            }
+
             return;
         }
-    } else {
-        chosenIdx = arrowSelect(players, totalplayers, currentIdx, current, topCard, activeColor, isClockwise);
+    }
+
+    else {
+        chosenIdx = arrowSelect(players, totalplayers, currentIdx,
+                                current, topCard, activeColor, isClockwise);
+
         if (chosenIdx == ESC) {
             exitGame = true;
             return;
         }
+
         if (chosenIdx == DRAW) {
             card drawn = drawFromDeck(deck, deckTop);
-            addCard(current, drawn);
 
-            card temp[1] = { drawn };
-            showDrawnCards(current, temp, 1);
+            bool playable = isValidPlay(drawn, topCard, activeColor);
+            char choice = showDrawnCards(current, &drawn, 1, false, playable);;
 
-            currentIdx = (currentIdx + (isClockwise ? 1 : -1) + totalplayers) % totalplayers;
+            if (choice == 'E' && isValidPlay(drawn, topCard, activeColor)) {
+                topCard = drawn;
+
+                if (drawn.color != "WILD")
+                    activeColor = drawn.color;
+
+                handleActionCards(drawn, currentIdx, totalplayers,
+                                  isClockwise, activeColor,
+                                  deck, deckTop, players, skipNext);
+            }
+            else {
+                addCard(current, drawn);
+            }
+
+            int step = isClockwise ? 1 : -1;
+            currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+
+            if (skipNext) {
+                cout << "\n[!] Giliran " << players[currentIdx].name << " DILEWATI!\n";
+                currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+                Sleep(1700);
+            }
+
             return;
         }
     }
 
     card played = removeCard(current, chosenIdx);
-    topCard = played;
-    if (played.color != "WILD") activeColor = played.color;
-    handleActionCards(played, currentIdx, totalplayers, isClockwise, 
-                      activeColor, deck, deckTop, players, skipNext);
 
-    if ((*current).handSize == 1) { cout << BOLD << YELLOW << "\nUNO!\n" << RESET; Sleep(1000); }
-    if ((*current).handSize == 0) return; 
+    topCard = played;
+    if (played.color != "WILD")
+        activeColor = played.color;
+
+    handleActionCards(played, currentIdx, totalplayers,
+                      isClockwise, activeColor,
+                      deck, deckTop, players, skipNext);
+
+    if ((*current).handSize == 1) {
+        cout << BOLD << YELLOW << "\nUNO!\n" << RESET;
+        Sleep(1000);
+    }
+
+    if ((*current).handSize == 0) return;
 
     int step = isClockwise ? 1 : -1;
     currentIdx = (currentIdx + step + totalplayers) % totalplayers;
@@ -286,7 +391,7 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
     }
 }
 
-//* GAME START
+// Game Start
 void startGame(card deck[], int deckSize, int botAmount) {
     srand(time(0));
     shuffleDeck(deck, deckSize);
