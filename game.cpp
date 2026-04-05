@@ -57,12 +57,11 @@ string getColor(string color) {
     return RESET;
 }
 
-string displayCard(card c, string activeColor = "")
+string displayCard(card c, bool isTopCard = false, string activeColor = "")
 {
     string colorToUse = c.color;
 
-    // 🔥 kalau WILD, pakai warna aktif
-    if (c.color == "WILD" && activeColor != "") {
+    if (isTopCard && c.color == "WILD" && c.value != "Swap") {
         colorToUse = activeColor;
     }
 
@@ -128,7 +127,7 @@ void showHand(player players[], int totalplayers, int currentIdx,
               player* p, int selected, bool isClockwise)
 {
     cout << "---------------------------------------------\n" << endl
-         << "Kartu paling atas: \n" << displayCard(topCard, activeColor) << endl;
+         << "Kartu paling atas: \n" << displayCard(topCard, true, activeColor) << endl;
 
     for (int i = 0; i < totalplayers; i++) {
         if (i == currentIdx) continue;
@@ -140,7 +139,7 @@ void showHand(player players[], int totalplayers, int currentIdx,
     int i = 0;
     cout << "\nKartu " << BOLD << (*p).name << RESET << ":\n";
     while (temp) {
-        cout << (i == selected ? " --> " : "     ") << displayCard((*temp).data, activeColor) << "\n";
+        cout << (i == selected ? " --> " : "     ") << displayCard((*temp).data) << "\n";
         temp = (*temp).next;
         i++;
     }

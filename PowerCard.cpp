@@ -35,7 +35,7 @@ struct player {
 void addCard(player* p, card c);
 card drawFromDeck(card deck[], int &deckTop);
 string getColor(string color);
-string displayCard(card c, string activeColor);
+string displayCard(card c, bool isTopCard = false, string activeColor = "");
 void showDrawnCards(player* p, card drawn[], int count);
 
 
@@ -53,7 +53,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
     string val = played.value;
     int step = isClockwise ? 1 : -1;
 
-    cout << "\nMengeluarkan kartu: " << displayCard(played, activeColor) << " \n";
+    cout << "\nMengeluarkan kartu: " << displayCard(played, true, activeColor) << " \n";
 
     // 1. REVERSE
     if (val == "Reverse") {
@@ -225,7 +225,6 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
         cout << "Tekan tombol apa saja untuk lanjut...";
         _getch();
 
-        skipNext = true;
     }
 
     Sleep(1700);
