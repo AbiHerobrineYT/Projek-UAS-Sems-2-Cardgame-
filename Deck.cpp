@@ -14,9 +14,9 @@ void createDeck(card kartu[], int &deckSize)
     int index = 0;
 
     // Weight
-    int repeatNumber = 3;
-    int repeatAction = 5/2;
-    int repeatWild = 3/2;
+    int repeatNumber = 2;
+    int repeatAction = 4;
+    int repeatWild = 6;
 
     // Kartu Berwarna
     for (int c = 0; c < 4; c++)

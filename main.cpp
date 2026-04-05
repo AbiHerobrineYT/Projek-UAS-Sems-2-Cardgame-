@@ -89,7 +89,7 @@ int main()
                 system("cls");
                 cout << "Kamu pilih " << select << " Bot!\n";
 
-                card deck[200];
+                card deck[600];
                 int deckSize;
 
                 createDeck(deck, deckSize);

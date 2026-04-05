@@ -2,6 +2,7 @@
 #include <string>
 #include <conio.h>
 #include <windows.h>
+#include <limits>
 
 using namespace std;
 
@@ -22,11 +23,21 @@ struct player {
     bool isBot;
 };
 
+// Ansi Color
+#define RESET   "\033[0m"
+#define BOLD    "\033[1m"
+#define RED     "\033[31m"
+#define YELLOW  "\033[33m"
+#define GREEN   "\033[32m"
+#define BLUE    "\033[34m"
+
 // Prototype fungsi pendukung dari game.cpp
 void addCard(player* p, card c);
 card drawFromDeck(card deck[], int &deckTop);
 string getColor(string color);
-string displayCard(card c);
+string displayCard(card c, string activeColor);
+void showDrawnCards(player* p, card drawn[], int count);
+
 
 /**
  * handleActionCards
@@ -42,7 +53,7 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
     string val = played.value;
     int step = isClockwise ? 1 : -1;
 
-    cout << "\nMengeluarkan kartu: " << displayCard(played) << " \n";
+    cout << "\nMengeluarkan kartu: " << displayCard(played, activeColor) << " \n";
 
     // 1. REVERSE
     if (val == "Reverse") {
@@ -64,11 +75,21 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
     // 3. PLUS 2 (+2)
     else if (val == "+2") {
         int victimIdx = (currentIdx + step + totalPlayers) % totalPlayers;
+
+        card drawn[2];
+
         for (int i = 0; i < 2; i++) {
-            addCard(&players[victimIdx], drawFromDeck(deck, deckTop));
+            drawn[i] = drawFromDeck(deck, deckTop);
+            addCard(&players[victimIdx], drawn[i]);
         }
-        skipNext = true; 
+
         cout << endl << players[victimIdx].name << " mengambil 2 kartu!\n";
+
+        Sleep(1500);
+
+        showDrawnCards(&players[victimIdx], drawn, 2);
+
+        skipNext = true; 
     }
 
     // 4. WILD (REVISI: Ditambahkan pembersihan buffer dan feedback)
@@ -89,75 +110,123 @@ void handleActionCards(card played, int &currentIdx, int totalPlayers,
             else choiceColor = "BLU";
         }
         activeColor = choiceColor; // Pastikan reference activeColor terupdate
-        cout << "\n# Warna meja sekarang berubah menjadi: " << activeColor << " [!]\n";
+        cout << "\n# Warna meja sekarang berubah menjadi: " << getColor(activeColor) << BOLD << activeColor << RESET << " [!]\n";
     }
 
     // 5. PLUS 4 (+4) (REVISI: Logika pemilihan warna disamakan dengan Wild)
     else if (val == "+4") {
         string choiceColor;
+
         if (players[currentIdx].isBot) {
             string colors[] = {"RED", "YEL", "GRN", "BLU"};
             choiceColor = colors[rand() % 4];
         } else {
             cout << "Pilih Warna Baru untuk +4 (R/Y/G/B): ";
             while (_kbhit()) _getch();
-            
+
             char choice = toupper(_getch());
             if (choice == 'R') choiceColor = "RED";
             else if (choice == 'Y') choiceColor = "YEL";
             else if (choice == 'G') choiceColor = "GRN";
             else choiceColor = "BLU";
         }
+
         activeColor = choiceColor;
 
         int victimIdx = (currentIdx + step + totalPlayers) % totalPlayers;
+
+        Sleep(1500);
+
+        card drawn[4];
+
         for (int i = 0; i < 4; i++) {
-            addCard(&players[victimIdx], drawFromDeck(deck, deckTop));
+            drawn[i] = drawFromDeck(deck, deckTop);
+            addCard(&players[victimIdx], drawn[i]);
         }
+
+        cout << "\n# Warna: " << getColor(activeColor) << BOLD << activeColor << RESET << ". " << players[victimIdx].name << " ambil 4 kartu & dilewati!\n";
+
+        showDrawnCards(&players[victimIdx], drawn, 4);
+
         skipNext = true; 
-        cout << "\n# Warna: " << activeColor << ". " << players[victimIdx].name << " ambil 4 kartu & dilewati!\n";
     }
 
     // 6. SWAP
     else if (val == "Swap") {
         int targetIdx = -1;
+
         if (players[currentIdx].isBot) {
             do {
                 targetIdx = rand() % totalPlayers;
             } while (targetIdx == currentIdx);
-        } else {
-            cout << "\n--- PILIH TARGET SWAP ---\n";
-            for (int i = 0; i < totalPlayers; i++) {
-                if (i != currentIdx) {
-                    cout << "[" << i << "] " << players[i].name << " (" << players[i].handSize << " kartu)\n";
+        } 
+        else {
+            int selected = 0;
+
+            if (selected == currentIdx) selected++;
+
+            while (true) {
+                system("cls");
+
+                cout << "--- PILIH TARGET SWAP ---\n";
+
+                for (int i = 0; i < totalPlayers; i++) {
+                    if (i == currentIdx) continue;
+
+                    if (i == selected)
+                        cout << " > ";
+                    else
+                        cout << "   ";
+
+                    cout << "[" << i << "] "
+                        << players[i].name
+                        << " (" << players[i].handSize << " kartu)\n";
+                }
+
+                int key = _getch();
+
+                if (key == 224) {
+                    key = _getch();
+
+                    if (key == 72) {
+                        do {
+                            selected--;
+                            if (selected < 0) selected = totalPlayers - 1;
+                        } while (selected == currentIdx);
+                    }
+
+                    else if (key == 80) {
+                        do {
+                            selected++;
+                            if (selected >= totalPlayers) selected = 0;
+                        } while (selected == currentIdx);
+                    }
+                }
+                else if (key == 13) {
+                    targetIdx = selected;
+                    break;
                 }
             }
-            cout << "Masukkan ID Target: ";
-            
-            cin.clear(); 
-            if (cin.peek() == '\n') cin.ignore(); 
-            if (!(cin >> targetIdx)) {
-                cin.clear();
-                cin.ignore(1000, '\n');
-            }
         }
 
-        if (targetIdx >= 0 && targetIdx < totalPlayers && targetIdx != currentIdx) {
-            cardNode* tempHand = players[currentIdx].hand;
-            players[currentIdx].hand = players[targetIdx].hand;
-            players[targetIdx].hand = tempHand;
+        cardNode* tempHand = players[currentIdx].hand;
+        players[currentIdx].hand = players[targetIdx].hand;
+        players[targetIdx].hand = tempHand;
 
-            int tempSize = players[currentIdx].handSize;
-            players[currentIdx].handSize = players[targetIdx].handSize;
-            players[targetIdx].handSize = tempSize;
+        int tempSize = players[currentIdx].handSize;
+        players[currentIdx].handSize = players[targetIdx].handSize;
+        players[targetIdx].handSize = tempSize;
 
-            cout << "\n# SWAP BERHASIL! Tangan Anda ditukar dengan " << players[targetIdx].name << "!\n";
-        } else {
-            cout << "\n# ID tidak valid atau memilih diri sendiri. Swap dibatalkan.\n";
-        }
+        cout << "\n# SWAP BERHASIL! "
+            << players[currentIdx].name
+            << " bertukar kartu dengan "
+            << players[targetIdx].name << "!\n";
+
         cout << "Tekan tombol apa saja untuk lanjut...";
         _getch();
+
+        skipNext = true;
     }
-    
-    Sleep(1700); 
+
+    Sleep(1700);
 }
