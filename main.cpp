@@ -1,5 +1,6 @@
 #include <iostream>
 #include <conio.h>
+#include <windows.h>
 using namespace std;
 
 struct card {
@@ -15,26 +16,27 @@ void startGame(card deck[], int deckSize, int botAmount);
 
 void startMenu()
 {
-    cout << "\n--------------- UNO GAME ---------------\n" << endl;
-    cout << "\n        Press any button to Play        \n" << endl;
-    cout << "\n        ESC to Exit...        " << endl;
-    cout << "\n----------------------------------------\n" << endl;
+    cout << "\n────────────────── UNO GAME ───────────────────\n" << endl
+         << "\n          Press any button to Play        \n" << endl
+         << "\n          ESC to Exit...        " << endl
+         << "\n───────────────────────────────────────────────\n" << endl;
 }
 
 void mainMenu(int mainMenuSelect)
 {
-        cout << "\n-------------- Opponent --------------\n" << endl;
+        cout << "\n────────────── Opponent ──────────────\n" << endl;
+        
         if (mainMenuSelect == 1){
-            cout << " -->       --- 1 Bot ---\n"<< endl;
-            cout << "           --- 2 Bot ---\n"<< endl;
-            cout << "           --- 3 Bot ---\n"<< endl;
-            cout << "\n         ESC to Back...        " << endl;
+            cout << " -->       --- 1 Bot ---\n"<< endl
+                 << "           --- 2 Bot ---\n"<< endl
+                 << "           --- 3 Bot ---\n"<< endl
+                 << "\n         ESC to Back...        " << endl;
         }
         else if (mainMenuSelect == 2){
-            cout << "           --- 1 Bot ---\n"<< endl;
-            cout << " -->       --- 2 Bot ---\n"<< endl;
-            cout << "           --- 3 Bot ---\n"<< endl;
-            cout << "\n         ESC to Back...        " << endl;
+            cout << "           --- 1 Bot ---\n"<< endl
+                 << " -->       --- 2 Bot ---\n"<< endl
+                 << "           --- 3 Bot ---\n"<< endl
+                 << "\n         ESC to Back...        " << endl;
         }
         else if (mainMenuSelect == 3){
             cout << "           --- 1 Bot ---\n"<< endl;
@@ -44,13 +46,9 @@ void mainMenu(int mainMenuSelect)
     }
 }
 
-// void gamePlay(int botAmount)
-// {    
-    
-// }
-
 int main()
 {
+    SetConsoleOutputCP(CP_UTF8);
     int input;
 
     while (true)
@@ -87,7 +85,7 @@ int main()
             else if (input == 13)
             {
                 system("cls");
-                cout << "Kamu pilih " << select << " Bot!\n";
+                cout << "Kamu pilih " << select << " bot!\n";
 
                 card deck[600];
                 int deckSize;
