@@ -24,9 +24,17 @@ struct player {
     cardNode* hand = nullptr;
     int handSize = 0;
     bool isBot;
+    int hp = 3;
+    bool eliminated = false;
 };
 
 bool exitGame = false;
+int initialCardCount = 7; //default system card
+int customCardCount = 0; //jumlah kartu custom yang dimasukkan user 
+bool suddenDeath = false;
+int suddenDeathLimit = 0;
+int playTurnCount = 0;
+int rotationCounter = 0;
 
 enum InputAction {
     DRAW = -1,
@@ -148,6 +156,8 @@ void showHand(player players[], int totalplayers, int currentIdx,
     cout << BOLD << "Kartu paling atas: \n" << RESET << displayCard(topCard, true, activeColor) << endl;
 
     for (int i = 0; i < totalplayers; i++) {
+        if (players[i].eliminated) continue; // BIAR TIDAK ERROR: Jangan tampilkan jika sudah tereliminasi
+
         if (i == currentIdx)
         cout << BOLD << "\nList pemain:" << RESET
              << "\n- " << players[i].name << " (" << players[i].handSize << " kartu) <-- Kamu" << RESET;
@@ -209,6 +219,74 @@ int botChooseCard(player* bot, card topCard, string activeColor) {
     return -1;
 }
 
+void startSuddenDeath(player players[], int totalplayers)
+{
+    suddenDeath = true;
+    suddenDeathLimit = 0;
+    for (int i = 0; i < totalplayers; i++)
+    {
+        players[i].hp = 3;
+
+        if (players[i].handSize > suddenDeathLimit) 
+        {
+            suddenDeathLimit = players[i].handSize;
+        }
+    }
+    system("cls");
+
+    cout << "\n====================================\n";
+    cout << "         SUDDEN DEATH AKTIF!\n";
+    cout << "====================================\n";
+
+    cout << "\nHP semua pemain = 3";
+    cout << "\nBatas kartu awal = " << suddenDeathLimit << endl;
+
+    cout << "\nTekan tombol apa saja...";
+    _getch();
+}
+
+void checkSuddenDeath(player players[], int totalplayers)
+{
+    if (suddenDeathLimit > 0)
+    {
+        suddenDeathLimit--;
+    }
+
+    cout << "\n====================================\n";
+    cout << "SUDDEN DEATH!!\n";
+    cout << "Batas kartu sekarang: "
+         << suddenDeathLimit << endl;
+    cout << "====================================\n";
+    for (int i = 0; i < totalplayers; i++)
+    {
+        if (players[i].eliminated) continue;
+
+        if (players[i].handSize > suddenDeathLimit)
+        {
+            players[i].hp--;
+
+            cout << "\n"
+                 << players[i].name
+                 << " menerima 1 damage!";
+
+            cout << "\nHP tersisa: "
+                 << players[i].hp
+                 << endl;
+            
+            if (players[i].hp <= 0)
+            {
+                players[i].eliminated = true;
+
+                cout << "\n"
+                     << players[i].name
+                     << " TERELIMINASI!\n";
+            }
+        }
+
+    }
+
+}
+
 // Bagian kontrols (inputan)
 int arrowSelect(player players[], int totalplayers, int currentIdx,
                 player* p, card topCard, string activeColor, bool isClockwise)
@@ -253,6 +331,22 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 {
     player* current = &players[currentIdx];
     bool skipNext = false; 
+
+    int humanCount = 0;
+    for (int i = 0; i < totalplayers; i++) {
+        if (!players[i].isBot) humanCount++;
+    }
+
+    if (!(*current).isBot && humanCount > 1) {
+        system("cls");
+        cout << "\n───────────────────────────────────────────────\n";
+        cout << "             GILIRAN: " << BOLD << (*current).name << RESET << "\n";
+        cout << "───────────────────────────────────────────────\n";
+        cout << "  Mohon oper perangkat ke " << BOLD << (*current).name << RESET << ".\n";
+        cout << "\n\n";
+        cout << "  Tekan [ENTER] jika " << (*current).name << " sudah siap...";
+        while (_getch() != 13);
+    }
 
     system("cls");
     cout << "\nGiliran: " << BOLD << (*current).name << RESET 
@@ -392,78 +486,122 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 }
 
 // Game Start
-void startGame(card deck[], int deckSize, int botAmount) {
+void startGame(card deck[], int deckSize, int botAmount, int humanAmount, string namaAkun[])
+{
     srand(time(0));
     shuffleDeck(deck, deckSize);
 
-
-    int totalplayers = botAmount + 1;
+    int totalplayers = botAmount + humanAmount;
     player players[4];
     bool isClockwise = true; 
+    suddenDeath = false;
+    suddenDeathLimit = 0;   
+    playTurnCount = 0;
+    rotationCounter = 0;
 
-    string inputNama;
-    bool valid = false;
+    for (int i = 0; i < humanAmount; i++) {
+        string inputNama;
+        bool valid = false;
 
-    do {
-        inputNama = "";
-        cout << "Nama Anda: ";
+        // do {
+        //     inputNama = "";
+        //     if (humanAmount > 1) {
+        //         cout << "Nama Pemain " << (i + 1) << ": ";
+        //     } else {
+        //         cout << "Nama Anda: ";
+        //     }
 
-        char ch;
-        while (true) {
-            ch = _getch();
+        //     char ch;
+        //     while (true) {
+        //         ch = _getch();
 
-            if (ch == 13) break;
+        //         if (ch == 13) break;
 
-            else if (ch == 8) {
-                if (!inputNama.empty()) {
-                    inputNama.pop_back();
-                    cout << "\b \b";
-                }
-            }
+        //         else if (ch == 8) {
+        //             if (!inputNama.empty()) {
+        //                 inputNama.pop_back();
+        //                 cout << "\b \b";
+        //             }
+        //         }
 
-            else if (isprint(ch)) {
-                if (inputNama.length() < 15) {
-                    inputNama += ch;
-                    cout << ch;
-                }
-            }
-        }
+        //         else if (isprint(ch)) {
+        //             if (inputNama.length() < 15) {
+        //                 inputNama += ch;
+        //                 cout << ch;
+        //             }
+        //         }
+        //     }
 
-        cout << endl;
+        //     cout << endl;
 
-        bool hanyaSpasi = true;
-        for (char c : inputNama) {
-            if (!isspace(c)) {
-                hanyaSpasi = false;
-                break;
-            }
-        }
+        //     bool hanyaSpasi = true;
+        //     for (char c : inputNama) {
+        //         if (!isspace(c)) {
+        //             hanyaSpasi = false;
+        //             break;
+        //         }
+        //     }
 
-        if (inputNama.empty() || hanyaSpasi) {
-            cout << RED << "Nama tidak boleh kosong!\n" << RESET;
-            Sleep(1000);
-        }
-        else {
-            valid = true;
-        }
+        //     if (inputNama.empty() || hanyaSpasi) {
+        //         cout << RED << "Nama tidak boleh kosong!\n" << RESET;
+        //         Sleep(1000);
+        //     }
+        //     else {
+        //         valid = true;
+        //     }
 
-    } while (!valid);
+        // } while (!valid);
 
-    players[0].name = inputNama;
-    players[0].isBot = false;
-
-
-    for (int i = 1; i <= botAmount; i++) {
-        players[i].name = "Bot " + to_string(i);
-        players[i].isBot = true;
+        // players[i].name = inputNama;
+        // players[i].isBot = false;
     }
 
+    players[0].name = namaAkun[0];  // pakai username dari akun
+    players[0].isBot = false;
+
+    // BIAR TIDAK ERROR: Inisialisasi otomatis jika pemain manusia lebih dari 1 (karena menu input di atas mati)
+    for (int i = 1; i < humanAmount; i++) {
+        players[i].name = "Pemain " + to_string(i + 1);
+        players[i].isBot = false;
+    }
+
+    for (int i = 0; i < botAmount; i++) {
+        players[humanAmount + i].name = "Bot " + to_string(i + 1);
+        players[humanAmount + i].isBot = true;
+    }
+
+    system("cls"); 
+    cout << "=========================================\n";
+    cout << "          PENGATURAN HOUSE RULES         \n";
+    cout << "=========================================\n";
+    cout << "Gunakan Aturan Jumlah Kartu Kustom?\n";
+    cout << "[1] Ya (Input Manual)\n";
+    cout << "[2] Tidak (Gunakan Default Sistem: " << initialCardCount << " Kartu)\n"; 
+    cout << "Pilihan: ";
+    int pilihanRule;
+    cin >> pilihanRule;
+
+    if (pilihanRule == 1) {
+        cout << "Masukkan jumlah kartu awal per pemain: ";
+        cin >> customCardCount;
+        if (customCardCount <= 0) {
+            customCardCount = initialCardCount; 
+        }
+    } else {
+        customCardCount = initialCardCount; 
+    }
+
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    system("cls"); 
+
     int deckTop = deckSize - 1;
-    for (int r = 0; r < 7; r++)
+    for (int r = 0; r < customCardCount; r++) 
         for (int i = 0; i < totalplayers; i++)
             addCard(&players[i], drawFromDeck(deck, deckTop));
 
     card topCard;
+    
     while (true) {
         topCard = drawFromDeck(deck, deckTop);
 
@@ -473,32 +611,88 @@ void startGame(card deck[], int deckSize, int botAmount) {
             topCard.value != "+4" &&
             topCard.value != "Wild" &&
             topCard.value != "Swap") {
-            break;
+                break;
+            }
         }
-    }
-    string activeColor = topCard.color;
+        string activeColor = topCard.color;
+        
+        int currentIdx = 0;
+        while (true) 
+        {
+            // BIAR TIDAK ERROR: Lewati pemain yang sudah tereliminasi di mode Sudden Death
+            while (players[currentIdx].eliminated) {
+                int step = isClockwise ? 1 : -1;
+                currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+            }
 
-    int currentIdx = 0;
-    while (true) {
-        playTurn(players, totalplayers, currentIdx, topCard, activeColor, deck, deckTop, isClockwise);
+            int alive = 0;
+            int winner = -1;
+            playTurn(players, totalplayers, currentIdx, topCard, activeColor, deck, deckTop, isClockwise);
+            
+            playTurnCount++;
 
-        if (exitGame) {
-            cout << "\n\nAkan keluar segera...";
-            Sleep(1700);
-            break;
-        }
+            if (!suddenDeath && playTurnCount >= totalplayers * 10)
+            {
+                startSuddenDeath(players, totalplayers);
+            }
 
-        for (int i = 0; i < totalplayers; i++) {
-            if (players[i].handSize == 0) {
+            if (suddenDeath)
+            {
+                rotationCounter++;
+
+                if (rotationCounter >= totalplayers)
+                {
+                    rotationCounter = 0;
+                    checkSuddenDeath(players, totalplayers);
+                }
+            }
+            
+            if (exitGame) {
+                cout << "\n\nAkan keluar segera...";
+                Sleep(1700);
+                break;
+            }
+
+            for (int i = 0; i < totalplayers; i++) {
+                if (players[i].handSize == 0 && !players[i].eliminated) {
+                    system("cls");
+                    cout << BRIGHT_CYAN << BOLD << "───────────────────────────────────────────────\n" << RESET
+                        << "               " << BOLD << YELLOW << "UNO GAME!!" << RESET << "\n"
+                        << BRIGHT_CYAN << BOLD << "───────────────────────────────────────────────\n" << RESET
+                        << "\n\n          PEMENANG: " << players[i].name << "\n\n\n"
+                        << "\n\n\nTekan tombol apa saja untuk kembali ke menu";
+
+                    _getch();
+                    return;
+                }
+            }
+
+            for (int i = 0; i < totalplayers; i++)
+            {
+                if (!players[i].eliminated)
+                {
+                    alive++;
+                    winner = i;
+                }
+            }
+
+            // == 1
+            if (suddenDeath && alive <= 1)
+            {
                 system("cls");
-                cout << BRIGHT_CYAN << BOLD << "───────────────────────────────────────────────\n" << RESET
-                     << "               " << BOLD << YELLOW << "UNO GAME!!" << RESET << "\n"
-                     << BRIGHT_CYAN << BOLD << "───────────────────────────────────────────────\n" << RESET
-                     << "\n\n          PEMENANG: " << players[i].name << "\n\n\n"
-                     << "\n\n\nTekan tombol apa saja untuk kembali ke menu";
-                     _getch();
+
+                cout << "\n====================================\n";
+                cout << "PEMENANG SUDDEN DEATH\n";
+                cout << "====================================\n";
+
+                if (winner != -1 && alive == 1) {
+                    cout << "\n" << players[winner].name << " adalah pemenangnya!\n";
+                } else {
+                    cout << "\nSemua pemain tereliminasi! Game DRAW!\n";
+                }
+
+                _getch();
                 return;
             }
         }
-    }
 }
