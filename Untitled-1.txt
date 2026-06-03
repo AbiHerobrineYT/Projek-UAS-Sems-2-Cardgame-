@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -28,7 +29,8 @@ struct player {
     bool eliminated = false;
 };
 
-// MOVEMENT LOG
+// movement log iniiiiiiiiiiiiiiiiiiiiiii
+
 #define MAX_LOG 15
 
 struct logEntry {
@@ -55,15 +57,13 @@ struct movementLog {
 } moveLog;
 
 bool exitGame = false;
-int initialCardCount = 7; 
-int customCardCount = 0; 
+int initialCardCount = 7; //default system card
+int customCardCount = 0; //jumlah kartu custom yang dimasukkan user 
 bool suddenDeath = false;
 int suddenDeathLimit = 0;
 int playTurnCount = 0;
 int rotationCounter = 0;
-bool customStackingEnabled = false;  
-int accumulatedPenalty = 0;          
-string activePenaltyType = "";       
+     // Menyimpan tipe kartu penalti ("+2" atau "+4")
 
 enum InputAction {
     DRAW = -1,
@@ -72,11 +72,12 @@ enum InputAction {
 
 card drawFromDeck(card deck[], int &deckTop);
 void handleActionCards(card played, int &currentIdx, int totalPlayers, 
-                       bool &isClockwise, string &activeColor, 
+                      bool customStackingEnabled = false;  // SAKLAR House Rule 2 (true = ON, false = OFF)
+int accumulatedPenalty = 0;          // Menyimpan total kartu hukuman (2, 4, 6, 8...)
+string activePenaltyType = "";   bool &isClockwise, string &activeColor, 
                        card deck[], int &deckTop, player players[], bool &skipNext);
 void addCard(player* p, card c);
-
-void clearHand(player* p) { 
+void clearHand(player* p) { // iniiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
     cardNode* current = (*p).hand;
     while (current != nullptr) {
         cardNode* nextNode = current->next;
@@ -149,6 +150,7 @@ char showDrawnCards(player* p, card drawn[], int count, bool isPenaltyDraw, bool
     }
 
     if (!isPlayable) {
+
         cout << "\n====================================\n";
         cout << "Kartu tidak bisa dimainkan!\n";
         cout << "Tekan tombol apa saja...";
@@ -188,6 +190,32 @@ card getCard(player* p, int index) {
     return temp ? (*temp).data : card{"ERROR", "ERROR"};
 }
 
+void displayLog() { // iniiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+    cout << BRIGHT_CYAN << BOLD << "\n── Movement Log (last " << moveLog.count << ") ──" << RESET << "\n";
+    if (moveLog.count == 0) {
+        cout << "  (belum ada aksi)\n";
+        return;
+    }
+    for (int i = 0; i < moveLog.count; i++) {
+        logEntry e = moveLog.get(i);
+        string dir = e.clockwise ? "CW" : "CCW";
+        string colorCode = getColor(e.cardColor);
+
+        cout << "  " << (i + 1 == moveLog.count ? ">" : " ")
+             << " [" << dir << "] "
+             << BOLD << e.playerName << RESET << ": "
+             << colorCode << BOLD << e.cardColor << " " << e.cardValue << RESET;
+
+        if (e.isPenalty && e.penaltyAmount > 0)
+            cout << " → +" << e.penaltyAmount << " kartu";
+
+        if (!e.extra.empty())
+            cout << " (" << e.extra << ")";
+
+        cout << "\n";
+    }
+}
+
 void pushLog(const string& name, const card& c, bool cw,
              bool isPenalty = false, int penCount = 0, const string& extra = "") {
     logEntry e;
@@ -201,47 +229,8 @@ void pushLog(const string& name, const card& c, bool cw,
     moveLog.add(e);
 }
 
-// FITUR BARU: MENU MOVEMENT LOG FULL SCREEN
-void displayLog() { 
-    system("cls");
-    cout << BRIGHT_CYAN << BOLD << "====================================================\n";
-    cout << "                 MOVEMENT LOG (Last " << moveLog.count << ")\n";
-    cout << "====================================================\n" << RESET;
-    
-    if (moveLog.count == 0) {
-        cout << "\n  (belum ada aksi)\n\n";
-    } else {
-        cout << "\n";
-        for (int i = 0; i < moveLog.count; i++) {
-            logEntry e = moveLog.get(i);
-            string dir = e.clockwise ? "CW" : "CCW";
-            string colorCode = getColor(e.cardColor);
 
-            cout << "  " << (i + 1 == moveLog.count ? ">" : " ")
-                 << " [" << dir << "] "
-                 << BOLD << e.playerName << RESET << ": ";
-                 
-            if (e.cardColor == "---") {
-                cout << BOLD << e.cardValue << RESET; 
-            } else {
-                cout << colorCode << BOLD << e.cardColor << " " << e.cardValue << RESET;
-            }
-
-            if (e.isPenalty && e.penaltyAmount > 0)
-                cout << " → +" << e.penaltyAmount << " kartu";
-
-            if (!e.extra.empty())
-                cout << " (" << e.extra << ")";
-
-            cout << "\n";
-        }
-        cout << "\n";
-    }
-    cout << BRIGHT_CYAN << BOLD << "====================================================\n" << RESET;
-    cout << "Tekan tombol apa saja untuk kembali ke permainan...";
-    _getch();
-}
-
+// Bagian Display
 void showHand(player players[], int totalplayers, int currentIdx,
               card topCard, string activeColor,
               player* p, int selected, bool isClockwise)
@@ -249,7 +238,7 @@ void showHand(player players[], int totalplayers, int currentIdx,
     cout << BOLD << "Kartu paling atas: \n" << RESET << displayCard(topCard, true, activeColor) << endl;
 
     for (int i = 0; i < totalplayers; i++) {
-        if (players[i].eliminated) continue; 
+        if (players[i].eliminated) continue; // BIAR TIDAK ERROR: Jangan tampilkan jika sudah tereliminasi
 
         if (i == currentIdx) {
             cout << BOLD << "\nList pemain:" << RESET;
@@ -270,12 +259,12 @@ void showHand(player players[], int totalplayers, int currentIdx,
         temp = (*temp).next;
         i++;
     }
-    // DITAMBAHKAN KONTROL [L] Log
     cout << BRIGHT_CYAN << BOLD << "\n───────────────────────────────────────────────\n" << RESET
          << "\nKontrol:"
-         << "\n[ARROW] Pilih | [ENTER] Main | [D] Draw | [L] Log | [ESC] Keluar\n";
+         << "\n[ARROW] Pilih | [ENTER] Main | [D] Draw | [ESC] Keluar\n"; // sbnrnya dihapus buat saving space aja tp W/S tetep bisa
 }
 
+//Bagian Shuffle
 void shuffleDeck(card deck[], int size) {
     for (int i = size - 1; i > 0; i--) {
         int j = rand() % (i + 1);
@@ -288,6 +277,7 @@ card drawFromDeck(card deck[], int &deckTop) {
     return deck[deckTop--];
 }
 
+// Sistem validasi kartu
 bool isValidPlay(card played, card topCard, string activeColor)
 {
     if (topCard.value == "Swap")
@@ -302,6 +292,7 @@ bool isValidPlay(card played, card topCard, string activeColor)
     return (played.color == activeColor || played.value == topCard.value);
 }
 
+// Algoritma basic bot AI
 int botChooseCard(player* bot, card topCard, string activeColor) {
     cardNode* temp = (*bot).hand;
     int i = 0;
@@ -381,6 +372,7 @@ void checkSuddenDeath(player players[], int totalplayers)
 
 }
 
+// Bagian kontrols (inputan)
 int arrowSelect(player players[], int totalplayers, int currentIdx,
                 player* p, card topCard, string activeColor, bool isClockwise)
 {
@@ -404,10 +396,6 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
         else if (key == 's' || key == 'S') {
             if (selected < (*p).handSize - 1) selected++;
         }
-        else if (key == 'l' || key == 'L') {  // TANGKAP INPUT 'L' UNTUK LOG
-            displayLog();
-            continue; // Ulangi loop untuk memunculkan showHand lagi
-        }
         else if (key == 13) { 
             card c = getCard(p, selected);
             if (!isValidPlay(c, topCard, activeColor)) {
@@ -420,6 +408,28 @@ int arrowSelect(player players[], int totalplayers, int currentIdx,
         else if (key == 'd' || key == 'D') return DRAW; 
     }
 }
+
+// card removeCard(player* p, int targetIdx) {
+//     card playedCard;
+//     cardNode* temp = p->hand;
+    
+//     if (targetIdx == 0) {
+//         playedCard = temp->data;
+//         p->hand = temp->next;
+//         delete temp;
+//     } else {
+//         cardNode* prev = nullptr;
+//         for (int i = 0; i < targetIdx; i++) {
+//             prev = temp;
+//             temp = temp->next;
+//         }
+//         playedCard = temp->data;
+//         prev->next = temp->next;
+//         delete temp;
+//     }
+//     p->handSize--;
+//     return playedCard;
+// }
 
 // Bagian turn
 void playTurn(player players[], int totalplayers, int &currentIdx,
@@ -461,6 +471,7 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
                 }
                 
                 cout << "\n[STACK!] BOT " << current->name << " MENUMPUK dengan " << activePenaltyType << "!\n";
+                // Eksekusi efek kartu (menambah accumulatedPenalty di PowerCard.cpp)
                 handleActionCards(played, currentIdx, totalplayers, isClockwise, activeColor, deck, deckTop, players, skipNext);
             } else {
                 cout << "\n[!] BOT " << current->name << " tidak bisa membalas! Menarik " << accumulatedPenalty << " kartu...\n";
@@ -476,68 +487,49 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
         } 
         // --- HUMAN LOGIC ---
         else {
-            while (true) {
-                system("cls");
-                cout << "====================================================\n";
-                cout << " WARNING: KAMU TERKENA SERANGAN " << activePenaltyType << "!\n";
-                cout << " Total kartu hukuman saat ini: " << accumulatedPenalty << " kartu.\n";
-                cout << "====================================================\n\n";
+            system("cls");
+            cout << "====================================================\n";
+            cout << " WARNING: KAMU TERKENA SERANGAN " << activePenaltyType << "!\n";
+            cout << " Total kartu hukuman saat ini: " << accumulatedPenalty << " kartu.\n";
+            cout << "====================================================\n\n";
 
-                if (hasResponseCard) {
-                    cout << "Kamu memiliki kartu " << activePenaltyType << " untuk ditumpuk (Stack)!\n";
-                    cout << "[1] Tumpuk Kartu (Lempar ancaman ke pemain berikutnya)\n";
-                    cout << "[2] Pasrah (Tarik " << accumulatedPenalty << " Kartu)\n";
-                    cout << "[3] Lihat Movement Log\n"; // TAMBAHAN OPSI LOG
-                    cout << "Pilihan: ";
-                    int pil; cin >> pil;
-                    cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            if (hasResponseCard) {
+                cout << "Kamu memiliki kartu " << activePenaltyType << " untuk ditumpuk (Stack)!\n";
+                cout << "[1] Tumpuk Kartu (Lempar ancaman ke pemain berikutnya)\n";
+                cout << "[2] Pasrah (Tarik " << accumulatedPenalty << " Kartu)\n";
+                cout << "Pilihan: ";
+                int pil; cin >> pil;
+                cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-                    if (pil == 1) {
-                        card played = removeCard(current, targetIdx);
-                        topCard = played;
-                        if (played.color != "WILD") activeColor = played.color;
-                        else {
-                            cout << "\nPilih Warna Baru:\n1. RED\n2. YELLOW\n3. GREEN\n4. BLUE\nPilihan: ";
-                            int cChoice; cin >> cChoice;
-                            cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                            if (cChoice == 1) activeColor = "RED";
-                            else if (cChoice == 2) activeColor = "YEL";
-                            else if (cChoice == 3) activeColor = "GRN";
-                            else activeColor = "BLU";
-                        }
-                        
-                        handleActionCards(played, currentIdx, totalplayers, isClockwise, activeColor, deck, deckTop, players, skipNext);
-
-                        int step = isClockwise ? 1 : -1;
-                        currentIdx = (currentIdx + step + totalplayers) % totalplayers;
-                        return;
-                    } 
-                    else if (pil == 3) {
-                        displayLog();
-                        continue; // Kembali untuk me-redraw layar warning
+                if (pil == 1) {
+                    card played = removeCard(current, targetIdx);
+                    topCard = played;
+                    if (played.color != "WILD") activeColor = played.color;
+                    else {
+                        cout << "\nPilih Warna Baru:\n1. RED\n2. YELLOW\n3. GREEN\n4. BLUE\nPilihan: ";
+                        int cChoice; cin >> cChoice;
+                        cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        if (cChoice == 1) activeColor = "RED";
+                        else if (cChoice == 2) activeColor = "YEL";
+                        else if (cChoice == 3) activeColor = "GRN";
+                        else activeColor = "BLU";
                     }
-                    else if (pil == 2) {
-                        break; // Keluar dari while untuk menarik kartu
-                    }
-                } else {
-                    if (!customStackingEnabled) {
-                        cout << "House Rule Stacking MATI! Kamu dilarang menumpuk kartu penalti.\n";
-                    } else {
-                        cout << "Kamu tidak memiliki kartu balasan " << activePenaltyType << " di tangan...\n";
-                    }
-                    cout << "[1] Pasrah (Tarik " << accumulatedPenalty << " Kartu)\n";
-                    cout << "[2] Lihat Movement Log\n"; // TAMBAHAN OPSI LOG
-                    cout << "Pilihan: ";
-                    int pil; cin >> pil;
-                    cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
                     
-                    if (pil == 2) {
-                        displayLog();
-                        continue;
-                    }
-                    break; // Keluar dari while untuk menarik kartu
+                    handleActionCards(played, currentIdx, totalplayers, isClockwise, activeColor, deck, deckTop, players, skipNext);
+
+                    int step = isClockwise ? 1 : -1;
+                    currentIdx = (currentIdx + step + totalplayers) % totalplayers;
+                    return;
                 }
-            } // end while
+            } else {
+                if (!customStackingEnabled) {
+                    cout << "House Rule Stacking MATI! Kamu dilarang menumpuk kartu penalti.\n";
+                } else {
+                    cout << "Kamu tidak memiliki kartu balasan " << activePenaltyType << " di tangan...\n";
+                }
+                cout << "Tekan tombol apa saja untuk menarik kartu penalti.";
+                _getch();
+            }
 
             // Jika pasrah / tidak bisa menumpuk
             for (int i = 0; i < accumulatedPenalty; i++) addCard(current, drawFromDeck(deck, deckTop));
@@ -591,8 +583,6 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
                 cout << (*current).name << " langsung memainkan kartu!\n";
                 Sleep(800);
 
-                pushLog((*current).name, drawn, isClockwise, false, 0, "DRAW & PLAY");
-
                 topCard = drawn;
                 if (drawn.color != "WILD")
                     activeColor = drawn.color;
@@ -603,13 +593,6 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
 
                 if ((*current).handSize == 1) {
                     cout << BOLD << YELLOW << "\nUNO!\n" << RESET;
-                    if (moveLog.count > 0) { 
-                        int lastIdx = (moveLog.head - 1 + MAX_LOG) % MAX_LOG;
-                        if (moveLog.entries[lastIdx].extra.empty())
-                            moveLog.entries[lastIdx].extra = "UNO!";
-                        else
-                            moveLog.entries[lastIdx].extra += " UNO!";
-                    }
                     Sleep(1000);
                 }
 
@@ -628,7 +611,6 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
             }
             else {
                 addCard(current, drawn);
-                pushLog((*current).name, {"---", "DRAW"}, isClockwise, false, 0, "DRAW CARD");
                 cout << (*current).name << " menyimpan kartu.\n";
                 Sleep(1000);
             }
@@ -662,8 +644,6 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
             char choice = showDrawnCards(current, &drawn, 1, false, playable);;
 
             if (choice == 'E' && isValidPlay(drawn, topCard, activeColor)) {
-                pushLog((*current).name, drawn, isClockwise, false, 0, "DRAW & PLAY");
-                
                 topCard = drawn;
 
                 if (drawn.color != "WILD")
@@ -675,7 +655,6 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
             }
             else {
                 addCard(current, drawn);
-                pushLog((*current).name, {"---", "DRAW"}, isClockwise, false, 0, "DRAW CARD");
             }
 
             int step = isClockwise ? 1 : -1;
@@ -697,6 +676,8 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
     if (played.color != "WILD")
         activeColor = played.color;
 
+
+// iniiiiiiiiiiiiiiiiii
     {
         string extra = "";
         bool isPen = false; int penCount = 0;
@@ -709,13 +690,14 @@ void playTurn(player players[], int totalplayers, int &currentIdx,
         pushLog((*current).name, played, isClockwise, isPen, penCount, extra);
     }
 
+
     handleActionCards(played, currentIdx, totalplayers,
                       isClockwise, activeColor,
                       deck, deckTop, players, skipNext);
 
     if ((*current).handSize == 1) {
         cout << BOLD << YELLOW << "\nUNO!\n" << RESET;
-        if (moveLog.count > 0) { 
+        if (moveLog.count > 0) { // iniiiiiiiiiiii
             int lastIdx = (moveLog.head - 1 + MAX_LOG) % MAX_LOG;
             if (moveLog.entries[lastIdx].extra.empty())
                 moveLog.entries[lastIdx].extra = "UNO!";
@@ -753,15 +735,66 @@ string startGame(card deck[], int deckSize, int botAmount, int humanAmount, stri
     playTurnCount = 0;
     rotationCounter = 0;
 
-    moveLog.count = 0; 
-    moveLog.head = 0;
+    // moveLog.count = 0; // Hapus tanda komentar pada baris ini jika Anda masih menggunakan fitur moveLog
 
     for (int i = 0; i < humanAmount; i++) {
         string inputNama;
         bool valid = false;
+
+        // do {
+        //     inputNama = "";
+        //     if (humanAmount > 1) {
+        //         cout << "Nama Pemain " << (i + 1) << ": ";
+        //     } else {
+        //         cout << "Nama Anda: ";
+        //     }
+
+        //     char ch;
+        //     while (true) {
+        //         ch = _getch();
+
+        //         if (ch == 13) break;
+
+        //         else if (ch == 8) {
+        //             if (!inputNama.empty()) {
+        //                 inputNama.pop_back();
+        //                 cout << "\b \b";
+        //             }
+        //         }
+
+        //         else if (isprint(ch)) {
+        //             if (inputNama.length() < 15) {
+        //                 inputNama += ch;
+        //                 cout << ch;
+        //             }
+        //         }
+        //     }
+
+        //     cout << endl;
+
+        //     bool hanyaSpasi = true;
+        //     for (char c : inputNama) {
+        //         if (!isspace(c)) {
+        //             hanyaSpasi = false;
+        //             break;
+        //         }
+        //     }
+
+        //     if (inputNama.empty() || hanyaSpasi) {
+        //         cout << RED << "Nama tidak boleh kosong!\n" << RESET;
+        //         Sleep(1000);
+        //     }
+        //     else {
+        //         valid = true;
+        //     }
+
+        // } while (!valid);
+
+        // players[i].name = inputNama;
+        // players[i].isBot = false;
     }
 
-    players[0].name = namaAkun[0];  
+    players[0].name = namaAkun[0];  // pakai username dari akun
     players[0].isBot = false;
     players[0].hand = nullptr;
     players[0].handSize = 0;
@@ -813,7 +846,7 @@ string startGame(card deck[], int deckSize, int botAmount, int humanAmount, stri
     cout << "[2] Tidak\n";
     cout << "Pilihan: ";
     int pilihanStacking; cin >> pilihanStacking;
-    customStackingEnabled = (pilihanStacking == 1);
+    // customStackingEnabled = (pilihanStacking == 1);
     
     cin.clear();
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -873,6 +906,7 @@ string startGame(card deck[], int deckSize, int botAmount, int humanAmount, stri
             return finalWinner;
         }
 
+        // BIAR TIDAK ERROR: Lewati pemain yang sudah tereliminasi di mode Sudden Death
         while (players[currentIdx].eliminated) {
             int step = isClockwise ? 1 : -1;
             currentIdx = (currentIdx + step + totalplayers) % totalplayers;
@@ -916,11 +950,14 @@ string startGame(card deck[], int deckSize, int botAmount, int humanAmount, stri
 
                 _getch();
                 for (int j = 0; j < totalplayers; j++) clearHand(&players[j]);
+                
+                // BARIS INI YANG SEBELUMNYA ERROR KARENA HANYA TERTULIS "return;"
                 return players[i].name; 
             }
         }
     }
 
+    // BARIS INI WAJIB ADA AGAR TIDAK ERROR "control reaches end"
     for (int i = 0; i < totalplayers; i++) clearHand(&players[i]);
     return "EXIT"; 
 }
