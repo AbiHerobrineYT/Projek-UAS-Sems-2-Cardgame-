@@ -52,9 +52,23 @@ bool isPowerCard(card c)
            c.value == "Swap";
 }
 
-void startSuddenDeath(player players[], int totalplayers)
+void delDeckpowercard (card deck[], int &decktop)
+{
+    int deckSD = 0;
+    for (int i = 0; i <= decktop; i++)
+    {
+        if (!isPowerCard(deck[i]))
+        {
+            deck[deckSD++] = deck[i];
+        }
+    }
+    decktop = deckSD - 1;
+}
+
+void startSuddenDeath(player players[], int totalplayers, card deck[], int &decktop)
 {
     suddenDeath = true;
+    delDeckpowercard(deck, decktop);
     for (int i = 0; i < totalplayers; i++) {
         cardNode* curr = players[i].hand;
         cardNode* prev = nullptr;

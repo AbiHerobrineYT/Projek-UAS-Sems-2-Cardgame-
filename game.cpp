@@ -56,7 +56,7 @@ bool isPowerCard(card c);
 void handleActionCards(card played, int &currentIdx, int totalPlayers,
                        bool &isClockwise, string &activeColor,
                        card deck[], int &deckTop, player players[], bool &skipNext);
-void startSuddenDeath(player players[], int totalplayers);
+void startSuddenDeath(player players[], int totalplayers, card deck[], int &decktop);
 void eliminationHighest(player players[], int totalplayers);
 
 bool exitGame = false;
@@ -967,6 +967,7 @@ string startGame(card deck[], int deckSize, int botAmount, int humanAmount, stri
             } else {
                 cout << "Semua pemain tereliminasi! DRAW\n";
             }
+            Sleep(2000);
             _getch();
             for (int i = 0; i < totalplayers; i++) clearHand(&players[i]);
             return finalWinner;
@@ -993,7 +994,7 @@ string startGame(card deck[], int deckSize, int botAmount, int humanAmount, stri
             }
 
             if (rotationCount >= rotasiSebelumSD) {
-                startSuddenDeath(players, totalplayers);
+                startSuddenDeath(players, totalplayers, deck, deckTop);
 
                 for (int i = 0; i < totalplayers; i++) {
                     if (!players[i].eliminated) {
@@ -1029,6 +1030,7 @@ string startGame(card deck[], int deckSize, int botAmount, int humanAmount, stri
                      << "───────────────────────────────────────────────\n" << RESET
                      << "\n\n          PEMENANG: " << players[i].name << "\n\n\n"
                      << "Tekan tombol apa saja untuk kembali ke menu...";
+                Sleep(2000);
                 _getch();
                 for (int j = 0; j < totalplayers; j++) clearHand(&players[j]);
                 return players[i].name;
