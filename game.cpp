@@ -487,7 +487,7 @@ void houseRulesMenu(int totalplayers) {
 
         cout << BRIGHT_CYAN << BOLD
              << "\n──────────────────────────────────────────\n"
-             << "HOUSE RULES SETUP\n"
+             << "               HOUSE RULES SETUP\n"
              << "──────────────────────────────────────────\n" << RESET
              << "\n  [↑↓] Pilih   [ENTER] Toggle/Edit   [ESC] Mulai Permainan\n"
              << "\n";
