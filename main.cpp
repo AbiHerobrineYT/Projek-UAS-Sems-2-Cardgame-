@@ -57,7 +57,7 @@ bool loginMenu() {
         cout << "\n──────────── LOGIN / REGISTER ────────────\n\n";
         cout << (select == 1 ? " --> " : "     ") << "Login\n\n";
         cout << (select == 2 ? " --> " : "     ") << "Register\n\n";
-        cout << "  Tekan ESC untuk Keluar...\n";
+        cout << "  Tekan ESC untuk Keluar...\n\n";
         cout << "──────────────────────────────────────────\n";
 
         int key = _getch();
@@ -200,10 +200,10 @@ void friendMenu() {
 void modeMenu(int select)
 {
     cout << "\n───────────────── UNO GAME MENU ─────────────────\n" << endl;
-    cout << (select == 1 ? " --> " : "     ") << "[ 1 ] Singleplayer (vs Bot)\n\n";
-    cout << (select == 2 ? " --> " : "     ") << "[ 2 ] Multiplayer (Pass n Play)\n\n";
-    cout << (select == 3 ? " --> " : "     ") << "[ 3 ] Friend List\n\n";
-    cout << (select == 4 ? " --> " : "     ") << "[ 4 ] Logout\n\n";
+    cout << (select == 1 ? " --> " : "     ") << "Singleplayer (vs Bot)\n\n";
+    cout << (select == 2 ? " --> " : "     ") << "Multiplayer (Pass n Play)\n\n";
+    cout << (select == 3 ? " --> " : "     ") << "Friend List\n\n";
+    cout << (select == 4 ? " --> " : "     ") << "Logout\n\n";
     cout << "\n         Tekan ESC untuk Keluar Game...        " << endl;
     cout << "─────────────────────────────────────────────────\n" << endl;
 }
