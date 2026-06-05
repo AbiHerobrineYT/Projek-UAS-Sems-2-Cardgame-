@@ -114,31 +114,3 @@ void updateStats(Akun akun[], int count, string username, bool menang) {
         }
     }
 }
-
-// bool login(string inputUser, string inputPass)
-// {
-//     ifstream file("accounts.csv");
-
-//     string line;
-//     getline(file, line); // skip header
-
-//     while (getline(file, line))
-//     {
-//         string user, password, wins, losses, games;
-
-//         stringstream ss(line);
-
-//         getline(ss, user, ',');
-//         getline(ss, password, ',');
-//         getline(ss, wins, ',');
-//         getline(ss, losses, ',');
-//         getline(ss, games, ',');
-
-//         if (user == inputUser && password == inputPass)
-//         {
-//             return true;
-//         }
-//     }
-
-//     return false;
-// }

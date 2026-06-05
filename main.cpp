@@ -48,15 +48,38 @@ string inputText(string prompt) {
     return result;
 }
 
+int arrowSelect(const string items[], int count, const string &title) {
+    int select = 0;
+    while (true) {
+        system("cls");
+        cout << "\n" << title << "\n\n";
+        for (int i = 0; i < count; i++) {
+            cout << (select == i ? " --> " : "     ") << items[i] << "\n\n";
+        }
+        cout << "  Tekan ESC untuk Kembali...\n";
+        cout << string(title.length() + 4, '-') << "\n";
+
+        int key = _getch();
+        if (key == 27) return -1;
+        if (key == 0 || key == 224) {
+            int arrow = _getch();
+            if (arrow == 72 && select > 0) select--;
+            else if (arrow == 80 && select < count - 1) select++;
+        } else if (key == 13) {
+            return select;
+        }
+    }
+}
+
 bool loginMenu() {
     accountCount = loadAkun(accounts, 10);
-    int select = 1;
+    int select = 0;
 
     while (true) {
         system("cls");
         cout << "\n──────────── LOGIN / REGISTER ────────────\n\n";
-        cout << (select == 1 ? " --> " : "     ") << "Login\n\n";
-        cout << (select == 2 ? " --> " : "     ") << "Register\n\n";
+        cout << (select == 0 ? " --> " : "     ") << "Login\n\n";
+        cout << (select == 1 ? " --> " : "     ") << "Register\n\n";
         cout << "  Tekan ESC untuk Keluar...\n\n";
         cout << "──────────────────────────────────────────\n";
 
@@ -65,11 +88,11 @@ bool loginMenu() {
 
         if (key == 0 || key == 224) {
             int arrow = _getch();
-            if (arrow == 72 && select > 1) select--;
-            else if (arrow == 80 && select < 2) select++;
-        } 
+            if (arrow == 72 && select > 0) select--;
+            else if (arrow == 80 && select < 1) select++;
+        }
         else if (key == 13) {
-            if (select == 1) {
+            if (select == 0) {
                 system("cls");
                 cout << "\n──────────── LOGIN ────────────\n\n";
                 string user = inputText("Username: ");
@@ -89,7 +112,7 @@ bool loginMenu() {
                     return true;
                 }
             }
-            else if (select == 2) {
+            else if (select == 1) {
                 system("cls");
                 cout << "\n──────────── REGISTER ────────────\n\n";
                 string user = inputText("Username baru: ");
@@ -112,73 +135,107 @@ void friendMenu() {
         cout << "\n[!] Fitur Teman hanya untuk akun terdaftar!\n"; Sleep(1500);
         return;
     }
-    
-    int select = 1; // Tracker untuk posisi arrow
+
+    int select = 0;
     while (true) {
         system("cls");
         cout << "\n────────────── FRIEND MENU ──────────────\n\n";
-        cout << (select == 1 ? " --> " : "     ") << "Daftar Teman Anda\n\n";
-        cout << (select == 2 ? " --> " : "     ") << "Tambah Teman (Cari Akun)\n\n";
-        cout << (select == 3 ? " --> " : "     ") << "Cek Permintaan Pertemanan\n\n";
+        cout << (select == 0 ? " --> " : "     ") << "Daftar Teman Anda\n\n";
+        cout << (select == 1 ? " --> " : "     ") << "Tambah Teman (Cari Akun)\n\n";
+        cout << (select == 2 ? " --> " : "     ") << "Cek Permintaan Pertemanan\n\n";
         cout << "  Tekan ESC untuk Kembali...\n";
         cout << "─────────────────────────────────────────\n";
-        
+
         int key = _getch();
         if (key == 27) break;
-        
+
         if (key == 0 || key == 224) {
             int arrow = _getch();
-            if (arrow == 72 && select > 1) select--;
-            else if (arrow == 80 && select < 3) select++;
+            if (arrow == 72 && select > 0) select--;
+            else if (arrow == 80 && select < 2) select++;
         }
         else if (key == 13) {
-            if (select == 1) {
+            if (select == 0) {
                 system("cls");
-                cout << "=== DAFTAR TEMAN ANDA ===\n\n";
+                cout << "──── DAFTAR TEMAN ANDA ────\n\n";
                 bool ada = false;
-                int displayIndex = 1;
                 for(int i = 0; i < accountCount; i++) {
                     if (friendGraph[loggedInIndex][i] == 1) {
-                        cout << "[" << displayIndex << "] " << accounts[i].username << "\n";
+                        cout << "  " << accounts[i].username << "\n";
                         ada = true;
-                        displayIndex++;
                     }
                 }
                 if (!ada) cout << "Anda belum memiliki teman.\n";
                 cout << "\nTekan tombol apa saja untuk kembali..."; _getch();
             }
-            else if (select == 2) {
-                system("cls");
-                cout << "=== DAFTAR AKUN TERSEDIA ===\n\n";
+            else if (select == 1) {
+                // Buat list akun yang bisa di-add
+                string namaAkun[10];
+                int idxAkun[10];
+                int total = 0;
                 for(int i = 0; i < accountCount; i++) {
                     if (i != loggedInIndex) {
-                        cout << "[" << (i + 1) << "] " << accounts[i].username;
-                        if (friendGraph[loggedInIndex][i] == 1) cout << " (Berteman)";
-                        else if (friendGraph[loggedInIndex][i] == 2) cout << " (Pending)";
-                        cout << "\n";
+                        string label = accounts[i].username;
+                        if (friendGraph[loggedInIndex][i] == 1) label += " (Berteman)";
+                        else if (friendGraph[loggedInIndex][i] == 2) label += " (Pending)";
+                        namaAkun[total] = label;
+                        idxAkun[total] = i;
+                        total++;
                     }
                 }
-                cout << "\nMasukkan nomor akun untuk di-Add (atau -1 untuk batal): ";
-                int t; cin >> t;
-                t = t - 1;
 
-                if (t >= 0 && t < accountCount && t != loggedInIndex && friendGraph[loggedInIndex][t] == 0) {
-                    friendGraph[loggedInIndex][t] = 2;
-                    simpanGraph();
-                    cout << "\nPermintaan terkirim ke " << accounts[t].username << "!\n";
+                if (total == 0) {
+                    system("cls");
+                    cout << "\nTidak ada akun lain tersedia.\n";
+                    Sleep(1500);
+                    continue;
                 }
-                Sleep(1500);
+
+                int pick = arrowSelect(namaAkun, total, "──── TAMBAH TEMAN ────");
+                if (pick != -1) {
+                    int t = idxAkun[pick];
+                    if (friendGraph[loggedInIndex][t] == 0) {
+                        friendGraph[loggedInIndex][t] = 2;
+                        simpanGraph();
+                        cout << "\nPermintaan terkirim ke " << accounts[t].username << "!\n";
+                    } else {
+                        cout << "\nSudah berteman atau permintaan sudah dikirim.\n";
+                    }
+                    Sleep(1500);
+                }
             }
-            else if (select == 3) {
+            else if (select == 2) {
                 system("cls");
-                cout << "=== PERMINTAAN TERTUNDA ===\n\n";
+                cout << "──── PERMINTAAN TERTUNDA ────\n\n";
                 bool ada = false;
                 for(int i = 0; i < accountCount; i++) {
                     if (friendGraph[i][loggedInIndex] == 2) {
-                        cout << "Akun: " << accounts[i].username << " ingin berteman dengan Anda.\n";
-                        cout << "Terima? (Y/N): ";
-                        char c = _getch(); cout << c << "\n";
-                        if (c == 'y' || c == 'Y') {
+                        system("cls");
+                        cout << "──── PERMINTAAN PERTEMANAN ────\n\n";
+                        cout << accounts[i].username << " ingin berteman dengan Anda.\n\n";
+                        cout << (1 == 1 ? "" : "");
+
+                        string pilihanArr[2] = {"Terima", "Tolak"};
+                        int pilihan = 0;
+                        while (true) {
+                            system("cls");
+                            cout << "──── PERMINTAAN PERTEMANAN ────\n\n";
+                            cout << accounts[i].username << " ingin berteman dengan Anda.\n\n";
+                            cout << (pilihan == 0 ? " --> " : "     ") << "Terima\n\n";
+                            cout << (pilihan == 1 ? " --> " : "     ") << "Tolak\n\n";
+                            cout << "─────────────────────────────────────────\n";
+
+                            int k = _getch();
+                            if (k == 0 || k == 224) {
+                                int arrow = _getch();
+                                if (arrow == 72 && pilihan > 0) pilihan--;
+                                else if (arrow == 80 && pilihan < 1) pilihan++;
+                            } else if (k == 13) {
+                                break;
+                            }
+                        }
+
+                        if (pilihan == 0) {
                             friendGraph[i][loggedInIndex] = 1;
                             friendGraph[loggedInIndex][i] = 1;
                             simpanGraph();
@@ -188,7 +245,8 @@ void friendMenu() {
                             simpanGraph();
                             cout << "Ditolak.\n";
                         }
-                        ada = true; Sleep(1000);
+                        ada = true;
+                        Sleep(1000);
                     }
                 }
                 if (!ada) { cout << "Tidak ada permintaan.\n"; Sleep(1500); }
@@ -200,10 +258,10 @@ void friendMenu() {
 void modeMenu(int select)
 {
     cout << "\n───────────────── UNO GAME MENU ─────────────────\n" << endl;
-    cout << (select == 1 ? " --> " : "     ") << "Singleplayer (vs Bot)\n\n";
-    cout << (select == 2 ? " --> " : "     ") << "Multiplayer (Pass n Play)\n\n";
-    cout << (select == 3 ? " --> " : "     ") << "Friend List\n\n";
-    cout << (select == 4 ? " --> " : "     ") << "Logout\n\n";
+    cout << (select == 0 ? " --> " : "     ") << "Singleplayer (vs Bot)\n\n";
+    cout << (select == 1 ? " --> " : "     ") << "Multiplayer (Pass n Play)\n\n";
+    cout << (select == 2 ? " --> " : "     ") << "Friend List\n\n";
+    cout << (select == 3 ? " --> " : "     ") << "Logout\n\n";
     cout << "\n         Tekan ESC untuk Keluar Game...        " << endl;
     cout << "─────────────────────────────────────────────────\n" << endl;
 }
@@ -211,12 +269,8 @@ void modeMenu(int select)
 void singleplayerBotMenu(int select)
 {
     cout << "\n────────────── PILIH JUMLAH LAWAN (BOT) ──────────────\n" << endl;
-    for (int i = 1; i <= 3; i++) {
-        if (select == i) {
-            cout << " -->       --- " << i << " Bot ---\n" << endl;
-        } else {
-            cout << "           --- " << i << " Bot ---\n" << endl;
-        }
+    for (int i = 0; i < 3; i++) {
+        cout << (select == i ? " -->       --- " : "           --- ") << (i + 1) << " Bot ---\n" << endl;
     }
     cout << "\n         Tekan ESC untuk Kembali...        " << endl;
 }
@@ -225,11 +279,7 @@ void multiplayerBotMenu(int select, int maxBot)
 {
     cout << "\n──────────────── TAMBAH BOT (OPSIONAL) ────────────────\n" << endl;
     for (int i = 0; i <= maxBot; i++) {
-        if (select == i) {
-            cout << " -->       --- " << i << " Bot ---\n" << endl;
-        } else {
-            cout << "           --- " << i << " Bot ---\n" << endl;
-        }
+        cout << (select == i ? " -->       --- " : "           --- ") << i << " Bot ---\n" << endl;
     }
     cout << "\n         Tekan ESC untuk Kembali...        " << endl;
 }
@@ -245,7 +295,7 @@ int main()
 
         string currentAccountName = accounts[loggedInIndex].username;
         int input;
-        int modeSelect = 1;
+        int modeSelect = 0;
         bool sessionActive = true;
 
         while (sessionActive)
@@ -262,26 +312,26 @@ int main()
             if (input == 0 || input == 224)
             {
                 int arrow = _getch();
-                if (arrow == 72 && modeSelect > 1)
+                if (arrow == 72 && modeSelect > 0)
                     modeSelect--;
-                else if (arrow == 80 && modeSelect < 4)
+                else if (arrow == 80 && modeSelect < 3)
                     modeSelect++;
             }
             else if (input == 13)
             {
-                if (modeSelect == 4)
+                if (modeSelect == 3)
                 {
                     loggedInIndex = -1;
                     sessionActive = false;
                     cout << "\nLogging out...\n";
                     Sleep(1000);
                 }
-                else if (modeSelect == 3) {
+                else if (modeSelect == 2) {
                     friendMenu();
                 }
-                else if (modeSelect == 1)
+                else if (modeSelect == 0)
                 {
-                    int botSelect = 1;
+                    int botSelect = 0;
                     bool backToMainMenu = false;
 
                     while (true)
@@ -299,15 +349,15 @@ int main()
                         if (input == 0 || input == 224)
                         {
                             int arrow = _getch();
-                            if (arrow == 72 && botSelect > 1)
+                            if (arrow == 72 && botSelect > 0)
                                 botSelect--;
-                            else if (arrow == 80 && botSelect < 3)
+                            else if (arrow == 80 && botSelect < 2)
                                 botSelect++;
                         }
                         else if (input == 13)
                         {
                             system("cls");
-                            cout << "Memulai Singleplayer: 1 Pemain Manusia & " << botSelect << " Bot...\n";
+                            cout << "Memulai Singleplayer: 1 Pemain Manusia & " << (botSelect + 1) << " Bot...\n";
                             Sleep(1500);
 
                             card deck[600];
@@ -317,8 +367,8 @@ int main()
 
                             string pNames[4];
                             pNames[0] = currentAccountName;
-                            
-                            string pemenang = startGame(deck, deckSize, botSelect, 1, pNames);
+
+                            string pemenang = startGame(deck, deckSize, botSelect + 1, 1, pNames);
 
                             if (pemenang != "EXIT") {
                                 bool isMenang = (pemenang == currentAccountName);
@@ -331,10 +381,11 @@ int main()
                     if (exitGame) return 0;
                 }
 
-                else if (modeSelect == 2)
+                else if (modeSelect == 1)
                 {
+                    // Kumpulkan daftar teman
                     int totalTeman = 0;
-                    int daftarIdTeman[10]; 
+                    int daftarIdTeman[10];
                     for(int i = 0; i < accountCount; i++) {
                         if (friendGraph[loggedInIndex][i] == 1) {
                             daftarIdTeman[totalTeman] = i;
@@ -343,7 +394,7 @@ int main()
                     }
 
                     if (totalTeman < 1) {
-                        cout << "\n[!] Anda butuh minimal 1 Teman (saling Add) untuk bermain Multiplayer!\n"; 
+                        cout << "\n[!] Anda butuh minimal 1 Teman (saling Add) untuk bermain Multiplayer!\n";
                         Sleep(2500);
                         continue;
                     }
@@ -351,38 +402,58 @@ int main()
                     int maxPlayersAllowed = totalTeman + 1;
                     if (maxPlayersAllowed > 4) maxPlayersAllowed = 4;
 
-                    system("cls");
-                    cout << "\n────────────── JUMLAH PEMAIN MANUSIA ──────────────\n\n";
-                    cout << "Pilih jumlah pemain manusia (2 sampai " << maxPlayersAllowed << "): ";
-                    int humanSelect;
-                    cin >> humanSelect;
-                    
-                    if (humanSelect < 2 || humanSelect > maxPlayersAllowed) {
-                        cout << "Input tidak valid!\n"; Sleep(1500); 
-                        continue;
+                    // Pilih jumlah pemain manusia pakai arrow key
+                    int jumlahOpsi = maxPlayersAllowed - 1; // opsi: 2..maxPlayersAllowed
+                    string opsiPemain[3];
+                    for (int i = 0; i < jumlahOpsi; i++) {
+                        opsiPemain[i] = to_string(i + 2) + " Pemain Manusia";
                     }
+
+                    int humanPick = arrowSelect(opsiPemain, jumlahOpsi, "────────── JUMLAH PEMAIN MANUSIA ──────────");
+                    if (humanPick == -1) continue;
+                    int humanSelect = humanPick + 2;
 
                     string pNames[4];
                     pNames[0] = currentAccountName;
 
+                    // Pilih teman untuk setiap slot pakai arrow key
+                    bool batalInvite = false;
                     for (int p = 1; p < humanSelect; p++) {
-                        system("cls");
-                        cout << "Invite Teman untuk Slot Player " << (p+1) << ":\n\n";
+                        string namaOpsi[10];
+                        int idxOpsi[10];
+                        int totalOpsi = 0;
                         for(int i = 0; i < totalTeman; i++) {
-                            cout << "[" << (i + 1) << "] " << accounts[daftarIdTeman[i]].username << "\n";
+                            // Hindari duplikat pemain yang sudah dipilih
+                            bool sudahDipilih = false;
+                            for (int x = 1; x < p; x++) {
+                                if (pNames[x] == accounts[daftarIdTeman[i]].username) {
+                                    sudahDipilih = true;
+                                    break;
+                                }
+                            }
+                            if (!sudahDipilih) {
+                                namaOpsi[totalOpsi] = accounts[daftarIdTeman[i]].username;
+                                idxOpsi[totalOpsi] = i;
+                                totalOpsi++;
+                            }
                         }
-                        cout << "\nKetik angka teman yang ingin di-invite: ";
-                        int pick; cin >> pick;
-                        pick = pick - 1;
-                        
-                        if (pick >= 0 && pick < totalTeman) {
-                            pNames[p] = accounts[daftarIdTeman[pick]].username;
-                        } else {
-                            cout << "Salah input, coba lagi!\n"; Sleep(1000);
-                            p--;
+
+                        if (totalOpsi == 0) {
+                            cout << "\nTidak cukup teman tersedia untuk slot ini.\n";
+                            Sleep(1500);
+                            batalInvite = true;
+                            break;
                         }
+
+                        string judulInvite = "Invite Teman untuk Slot Player " + to_string(p + 1);
+                        int pick = arrowSelect(namaOpsi, totalOpsi, judulInvite);
+                        if (pick == -1) { batalInvite = true; break; }
+                        pNames[p] = namaOpsi[pick];
                     }
 
+                    if (batalInvite) continue;
+
+                    // Pilih jumlah bot pakai arrow key
                     int maxBotAllowed = 4 - humanSelect;
                     int botSelect = 0;
                     if (maxBotAllowed > 0)
@@ -411,14 +482,14 @@ int main()
 
                     system("cls");
                     cout << "Memulai Multiplayer: " << humanSelect << " Pemain & " << botSelect << " Bot!\n";
-                    cout << "Pemain: \n";
-                    for(int i = 0; i < humanSelect; i++) cout << "- " << pNames[i] << "\n";
+                    cout << "Pemain:\n";
+                    for(int i = 0; i < humanSelect; i++) cout << "  " << pNames[i] << "\n";
                     Sleep(2000);
 
                     card deck[600];
                     int deckSize;
                     createDeck(deck, deckSize);
-                    
+
                     string pemenang = startGame(deck, deckSize, botSelect, humanSelect, pNames);
 
                     if (pemenang != "EXIT") {
@@ -428,7 +499,7 @@ int main()
                         }
                     }
 
-                    if (exitGame) return 0; // Langsung tutup game jika diperintahkan keluar
+                    if (exitGame) return 0;
                 }
             }
         }
