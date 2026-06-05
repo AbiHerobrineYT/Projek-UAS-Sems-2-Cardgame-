@@ -383,7 +383,6 @@ int main()
 
                 else if (modeSelect == 1)
                 {
-                    // Kumpulkan daftar teman
                     int totalTeman = 0;
                     int daftarIdTeman[10];
                     for(int i = 0; i < accountCount; i++) {
@@ -402,8 +401,7 @@ int main()
                     int maxPlayersAllowed = totalTeman + 1;
                     if (maxPlayersAllowed > 4) maxPlayersAllowed = 4;
 
-                    // Pilih jumlah pemain manusia pakai arrow key
-                    int jumlahOpsi = maxPlayersAllowed - 1; // opsi: 2..maxPlayersAllowed
+                    int jumlahOpsi = maxPlayersAllowed - 1;
                     string opsiPemain[3];
                     for (int i = 0; i < jumlahOpsi; i++) {
                         opsiPemain[i] = to_string(i + 2) + " Pemain Manusia";
@@ -416,14 +414,12 @@ int main()
                     string pNames[4];
                     pNames[0] = currentAccountName;
 
-                    // Pilih teman untuk setiap slot pakai arrow key
                     bool batalInvite = false;
                     for (int p = 1; p < humanSelect; p++) {
                         string namaOpsi[10];
                         int idxOpsi[10];
                         int totalOpsi = 0;
                         for(int i = 0; i < totalTeman; i++) {
-                            // Hindari duplikat pemain yang sudah dipilih
                             bool sudahDipilih = false;
                             for (int x = 1; x < p; x++) {
                                 if (pNames[x] == accounts[daftarIdTeman[i]].username) {
@@ -453,7 +449,6 @@ int main()
 
                     if (batalInvite) continue;
 
-                    // Pilih jumlah bot pakai arrow key
                     int maxBotAllowed = 4 - humanSelect;
                     int botSelect = 0;
                     if (maxBotAllowed > 0)
