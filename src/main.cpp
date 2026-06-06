@@ -1,7 +1,7 @@
 #include <iostream>
 #include <conio.h>
 #include <windows.h>
-#include "akun.h"
+#include "include/akun.h"
 using namespace std;
 
 struct card {
@@ -80,8 +80,8 @@ bool loginMenu() {
         cout << "\n──────────── LOGIN / REGISTER ────────────\n\n";
         cout << (select == 0 ? " --> " : "     ") << "Login\n\n";
         cout << (select == 1 ? " --> " : "     ") << "Register\n\n";
-        cout << "  Tekan ESC untuk Keluar...\n\n";
         cout << "──────────────────────────────────────────\n";
+        cout << "  Tekan ESC untuk Keluar...\n\n";
 
         int key = _getch();
         if (key == 27) return false;
@@ -97,7 +97,7 @@ bool loginMenu() {
                 cout << "\n──────────── LOGIN ────────────\n\n";
                 string user = inputText("Username: ");
                 string pass = inputText("Password: ");
-
+                
                 int idx = loginAkun(accounts, accountCount, user, pass);
                 if (idx == -1) {
                     cout << "\nUsername atau password salah!\n";
@@ -107,7 +107,8 @@ bool loginMenu() {
                     cout << "\nSelamat datang, " << accounts[idx].username << "!\n";
                     cout << "Games: " << accounts[idx].games
                          << " | Wins: " << accounts[idx].wins
-                         << " | Losses: " << accounts[idx].losses << "\n";
+                         << " | Losses: " << accounts[idx].losses << "\n"
+                         << "\n─────────────────────────────\n\n";
                     Sleep(1800);
                     return true;
                 }
