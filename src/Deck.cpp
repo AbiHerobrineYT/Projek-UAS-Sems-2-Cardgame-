@@ -53,3 +53,4 @@ void createDeck(card kartu[], int &deckSize)
 
     deckSize = index;
 }
+// asldkf;lasdfhlksadjfhklsadjfhklasdjffh

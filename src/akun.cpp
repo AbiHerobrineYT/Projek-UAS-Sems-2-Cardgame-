@@ -1,11 +1,11 @@
-#include "akun.h"
+#include "include/akun.h"
 #include <fstream>
 #include <sstream>
 
 int friendGraph[10][10] = {0}; 
 
 void loadGraph() {
-    ifstream file("friends.csv");
+    ifstream file("data/friends.csv");
     if (!file.is_open()) return;
     string line;
     int r = 0;
@@ -23,7 +23,7 @@ void loadGraph() {
 }
 
 void simpanGraph() {
-    ofstream file("friends.csv");
+    ofstream file("data/friends.csv");
     for (int r = 0; r < 10; r++) {
         for (int c = 0; c < 10; c++) {
             file << friendGraph[r][c] << (c == 9 ? "" : ",");
@@ -34,7 +34,7 @@ void simpanGraph() {
 }
 
 int loadAkun(Akun akun[], int maxSize) {
-    ifstream file("akun.csv");
+    ifstream file("data/akun.csv");
     string line;
     int count = 0;
 
@@ -59,7 +59,7 @@ int loadAkun(Akun akun[], int maxSize) {
 }
 
 void simpanAkun(Akun akun[], int count) {
-    ofstream file("akun.csv");
+    ofstream file("data/akun.csv");
     file << "username,password,wins,losses,games" << endl;
     for (int i = 0; i < count; i++) {
         file << akun[i].username << ","
